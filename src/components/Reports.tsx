@@ -37,7 +37,6 @@ export function Reports() {
         inflationRate: 2,
         years: 10
       });
-
       const reports: FinancialReport[] = [{
         id: '1',
         title: 'Rapport financier mensuel',

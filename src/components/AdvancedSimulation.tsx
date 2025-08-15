@@ -306,7 +306,7 @@ export function AdvancedSimulation() {
       } finally {
         setIsLoading(false);
       }
-    }
+    };
     initializeSimulations();
   }, [financialData, runSimulation, calculateTotalIncome, calculateTotalExpenses]);
   // Guard clause for initialization

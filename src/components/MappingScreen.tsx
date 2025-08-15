@@ -300,9 +300,10 @@ export function MappingScreen() {
       toast.error('Veuillez entrer un montant valide');
       return;
     }
-
     try {
-      let itemToSave = { ...newItem };
+      let itemToSave = {
+        ...newItem
+      };
 
       // Auto-categorize if not already set
       if (!itemToSave.category && itemToSave.description) {
@@ -367,7 +368,10 @@ export function MappingScreen() {
     try {
       const updatedData = {
         ...financialData,
-        [activeTab]: financialData[activeTab].map(item => item.id === editingItemId ? { ...editingItem, value: parseFloat(editingItem.value as string) } : item)
+        [activeTab]: financialData[activeTab].map(item => item.id === editingItemId ? {
+          ...editingItem,
+          value: parseFloat(editingItem.value as string)
+        } : item)
       };
       setFinancialData(updatedData);
       setEditingItemId(null);
