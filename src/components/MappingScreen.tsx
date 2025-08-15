@@ -810,7 +810,7 @@ export function MappingScreen() {
               <div className="flex items-center">
                 {monthlyBalance >= 0 ? <ArrowUpIcon className="h-5 w-5 text-green-400 mr-1" /> : <ArrowDownIcon className="h-5 w-5 text-red-400 mr-1" />}
                 <span className={`${monthlyBalance >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                  {Math.abs((monthlyBalance / (totalIncome || 1)) * 100).toFixed(1)}
+                  {Math.abs(monthlyBalance / (totalIncome || 1) * 100).toFixed(1)}
                   %
                 </span>
               </div>

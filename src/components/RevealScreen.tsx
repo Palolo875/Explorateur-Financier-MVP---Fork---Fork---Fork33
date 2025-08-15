@@ -64,11 +64,19 @@ export function RevealScreen() {
     'next-steps': false
   });
   // Calculer les métriques financières avec des vérifications de sécurité
-  const { totalIncome, totalExpenses, netWorth } = useMemo(() => {
+  const {
+    totalIncome,
+    totalExpenses,
+    netWorth
+  } = useMemo(() => {
     const income = calculateTotalIncome() || 0;
     const expenses = calculateTotalExpenses() || 0;
     const net = calculateNetWorth() || 0;
-    return { totalIncome: income, totalExpenses: expenses, netWorth: net };
+    return {
+      totalIncome: income,
+      totalExpenses: expenses,
+      netWorth: net
+    };
   }, [financialData]);
   const balance = useMemo(() => totalIncome - totalExpenses, [totalIncome, totalExpenses]);
   const savingsRate = useMemo(() => totalIncome > 0 ? (totalIncome - totalExpenses) / totalIncome * 100 : 0, [totalIncome, totalExpenses]);
@@ -428,7 +436,7 @@ export function RevealScreen() {
                                     <span className="text-sm">Revenus</span>
                                     <div className="flex items-center">
                                       <span className="text-sm font-medium mr-2">
-                                        {totalIncome > 2500 ? `+${((totalIncome/2500 - 1)*100).toFixed(0)}%` : `-${((1 - totalIncome/2500)*100).toFixed(0)}%`}
+                                        {totalIncome > 2500 ? `+${((totalIncome / 2500 - 1) * 100).toFixed(0)}%` : `-${((1 - totalIncome / 2500) * 100).toFixed(0)}%`}
                                       </span>
                                       {totalIncome > 2500 ? <TrendingUpIcon className="h-4 w-4 text-green-400" /> : <TrendingDownIcon className="h-4 w-4 text-red-400" />}
                                     </div>
@@ -437,7 +445,7 @@ export function RevealScreen() {
                                     <span className="text-sm">Dépenses</span>
                                     <div className="flex items-center">
                                       <span className="text-sm font-medium mr-2">
-                                        {totalExpenses < 2000 ? `-${((1-totalExpenses/2000)*100).toFixed(0)}%` : `+${((totalExpenses/2000-1)*100).toFixed(0)}%`}
+                                        {totalExpenses < 2000 ? `-${((1 - totalExpenses / 2000) * 100).toFixed(0)}%` : `+${((totalExpenses / 2000 - 1) * 100).toFixed(0)}%`}
                                       </span>
                                       {totalExpenses < 2000 ? <TrendingDownIcon className="h-4 w-4 text-green-400" /> : <TrendingUpIcon className="h-4 w-4 text-red-400" />}
                                     </div>
@@ -448,7 +456,7 @@ export function RevealScreen() {
                                     </span>
                                     <div className="flex items-center">
                                       <span className="text-sm font-medium mr-2">
-                                        {savingsRate > 15 ? `+${((savingsRate/15-1)*100).toFixed(0)}%` : `-${((1-savingsRate/15)*100).toFixed(0)}%`}
+                                        {savingsRate > 15 ? `+${((savingsRate / 15 - 1) * 100).toFixed(0)}%` : `-${((1 - savingsRate / 15) * 100).toFixed(0)}%`}
                                       </span>
                                       {savingsRate > 15 ? <TrendingUpIcon className="h-4 w-4 text-green-400" /> : <TrendingDownIcon className="h-4 w-4 text-red-400" />}
                                     </div>

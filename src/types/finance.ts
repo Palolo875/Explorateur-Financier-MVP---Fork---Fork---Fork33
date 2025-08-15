@@ -36,7 +36,6 @@ export interface SimulationParams {
   inflationRate: number;
   years: number;
 }
-
 export interface SimulationResult {
   years: number[];
   netWorth: number[];
@@ -45,7 +44,6 @@ export interface SimulationResult {
   expenses: number[];
   name?: string;
 }
-
 export interface QuestionSuggestion {
   id: string;
   text: string;

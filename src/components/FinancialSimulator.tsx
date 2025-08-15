@@ -158,7 +158,9 @@ export function FinancialSimulator() {
     setIsLoading(true);
     setSimulationParams(params);
     try {
-      let adjustedParams = { ...params };
+      let adjustedParams = {
+        ...params
+      };
       switch (params.simulationType) {
         case 'optimistic':
           adjustedParams.incomeGrowth *= 1.5;
@@ -175,7 +177,10 @@ export function FinancialSimulator() {
           break;
       }
       const result = await runSimulation(adjustedParams);
-      let finalResult = { ...result, params: adjustedParams };
+      let finalResult = {
+        ...result,
+        params: adjustedParams
+      };
       if (params.simulationType === 'crisis' && activeScenario) {
         const scenario = scenarios.find(s => s.id === activeScenario);
         if (scenario?.crisisFunction) {
@@ -193,7 +198,10 @@ export function FinancialSimulator() {
   // Save current simulation
   const handleSaveSimulation = () => {
     if (results) {
-      setSavedSimulations([...savedSimulations, { ...results, name: params.name }]);
+      setSavedSimulations([...savedSimulations, {
+        ...results,
+        name: params.name
+      }]);
       toast.success('Simulation enregistrée');
     }
   };
@@ -600,7 +608,7 @@ export function FinancialSimulator() {
                     <div className="mt-2 flex items-center">
                       <div className="flex-1 h-2 bg-black/30 rounded-full overflow-hidden">
                         <div className="h-2 bg-gradient-to-r from-indigo-500 to-purple-500" style={{
-                    width: `${sim.netWorth?.[0] ? Math.min(100, (sim.netWorth[sim.netWorth.length - 1] / sim.netWorth[0]) * 50) : 0}%`
+                    width: `${sim.netWorth?.[0] ? Math.min(100, sim.netWorth[sim.netWorth.length - 1] / sim.netWorth[0] * 50) : 0}%`
                   }}></div>
                       </div>
                       <span className="ml-2 text-sm">
