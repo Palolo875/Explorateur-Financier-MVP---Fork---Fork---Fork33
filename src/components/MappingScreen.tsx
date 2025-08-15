@@ -319,7 +319,8 @@ export function MappingScreen() {
       // Add the new item with a unique ID
       const itemWithId = {
         ...itemToSave,
-        id: `${activeTab}-${Date.now()}`
+        id: `${activeTab}-${Date.now()}`,
+        value: parseFloat(itemToSave.value as string)
       };
       const updatedData = {
         ...financialData,
@@ -366,7 +367,7 @@ export function MappingScreen() {
     try {
       const updatedData = {
         ...financialData,
-        [activeTab]: financialData[activeTab].map(item => item.id === editingItemId ? editingItem : item)
+        [activeTab]: financialData[activeTab].map(item => item.id === editingItemId ? { ...editingItem, value: parseFloat(editingItem.value as string) } : item)
       };
       setFinancialData(updatedData);
       setEditingItemId(null);

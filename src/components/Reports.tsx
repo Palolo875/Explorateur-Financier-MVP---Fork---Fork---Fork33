@@ -69,7 +69,7 @@ export function Reports() {
       }
     };
     generateReports();
-  }, [generateInsights, runSimulation]);
+  }, [financialData, generateInsights, runSimulation]);
   const formatDate = (dateString: string) => {
     return dayjs(dateString).format('DD MMMM YYYY');
   };
