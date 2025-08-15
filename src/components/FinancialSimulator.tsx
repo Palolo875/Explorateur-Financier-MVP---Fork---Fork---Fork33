@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, createElement } from 'react';
 import { GlassCard } from './ui/GlassCard';
 import { useTheme } from '../context/ThemeContext';
 import { useFinance } from '../context/FinanceContext';
@@ -235,6 +235,42 @@ export function FinancialSimulator() {
       handleRunSimulation();
     }
   }, [financialData]);
+  const handleExportResults = () => {
+    console.log("Début de l'exportation des résultats");
+    try {
+      // Créer les données à exporter
+      const dataToExport = {
+        simulationName: params.name,
+        date: new Date().toISOString(),
+        parameters: params,
+        results: results
+      };
+      // Convertir en JSON
+      const jsonString = JSON.stringify(dataToExport, null, 2);
+      console.log('Données JSON préparées:', jsonString.substring(0, 100) + '...');
+      // Créer un blob et un lien de téléchargement
+      const blob = new Blob([jsonString], {
+        type: 'application/json'
+      });
+      const url = URL.createObjectURL(blob);
+      // Créer un élément de lien temporaire
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `simulation-${params.name.replace(/\s+/g, '-').toLowerCase()}-${new Date().toISOString().slice(0, 10)}.json`;
+      // Ajouter au DOM, cliquer, puis supprimer
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      // Libérer l'URL
+      URL.revokeObjectURL(url);
+      console.log('Exportation réussie');
+      toast.success('Simulation exportée avec succès');
+    } catch (error) {
+      console.error("Erreur détaillée lors de l'exportation:", error);
+      toast.error("Erreur lors de l'exportation des résultats");
+    }
+  };
+  window.handleExportResults = handleExportResults;
   return <div className="w-full max-w-6xl mx-auto pb-20">
       <Toaster position="top-right" />
       {/* Header */}

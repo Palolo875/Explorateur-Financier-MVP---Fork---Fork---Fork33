@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef, useMemo } from 'react';
+import React, { useEffect, useMemo, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTheme } from '../context/ThemeContext';
@@ -171,7 +171,6 @@ export function MappingScreen() {
   // State for contextual tags
   const [availableTags, setAvailableTags] = useState<string[]>([]);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
-
   // Calculate financial health score
   useEffect(() => {
     // Simple scoring algorithm based on income, expenses, savings, and debts
@@ -295,40 +294,90 @@ export function MappingScreen() {
   };
   // Handle adding a new item
   const handleAddItem = async () => {
-    // Validate input
-    if (!newItem.value || isNaN(parseFloat(newItem.value as string))) {
-      toast.error('Veuillez entrer un montant valide');
-      return;
-    }
     try {
-      let itemToSave = {
-        ...newItem
-      };
-
-      // Auto-categorize if not already set
-      if (!itemToSave.category && itemToSave.description) {
-        const suggestedCategory = await categorizeTransaction(itemToSave.description, activeTab.slice(0, -1) as 'income' | 'expense' | 'saving' | 'debt', parseFloat(itemToSave.value as string));
-        itemToSave.category = suggestedCategory;
-      }
-
-      // Validate category after auto-categorization attempt
-      if (!itemToSave.category) {
-        toast.error('Veuillez sélectionner une catégorie');
+      console.log('Début de handleAddItem avec:', newItem);
+      // Validation de base
+      if (!newItem.value) {
+        toast.error('Veuillez entrer un montant');
         return;
       }
-
-      // Add the new item with a unique ID
+      // Conversion de la valeur en nombre avec gestion d'erreur explicite
+      let numericValue;
+      try {
+        numericValue = typeof newItem.value === 'string' ? parseFloat(newItem.value) : Number(newItem.value);
+        if (isNaN(numericValue)) {
+          toast.error('Le montant doit être un nombre valide');
+          return;
+        }
+      } catch (error) {
+        console.error('Erreur lors de la conversion du montant:', error);
+        toast.error('Le montant est invalide');
+        return;
+      }
+      // Créer une copie complète et sécurisée de l'élément
+      const itemToSave = JSON.parse(JSON.stringify({
+        ...newItem,
+        value: numericValue
+      }));
+      // Vérifier et assigner une catégorie si nécessaire
+      if (!itemToSave.category) {
+        console.log('Pas de catégorie définie, tentative de catégorisation automatique');
+        // Essayer la catégorisation automatique si une description est disponible
+        if (itemToSave.description) {
+          try {
+            console.log('Tentative de catégorisation pour:', itemToSave.description);
+            const suggestedCategory = await categorizeTransaction(itemToSave.description, activeTab.slice(0, -1) as 'income' | 'expense' | 'saving' | 'debt', numericValue);
+            console.log('Catégorie suggérée:', suggestedCategory);
+            if (suggestedCategory) {
+              itemToSave.category = suggestedCategory;
+            }
+          } catch (categorizationError) {
+            console.error('Échec de la catégorisation automatique:', categorizationError);
+            // Continuer sans catégorisation automatique
+          }
+        }
+        // Assigner une catégorie par défaut si toujours pas définie
+        if (!itemToSave.category) {
+          console.log("Attribution d'une catégorie par défaut");
+          switch (activeTab) {
+            case 'incomes':
+              itemToSave.category = 'other_income';
+              break;
+            case 'expenses':
+              itemToSave.category = 'other_expense';
+              break;
+            case 'savings':
+              itemToSave.category = 'savings';
+              break;
+            case 'debts':
+              itemToSave.category = 'other_debt';
+              break;
+          }
+        }
+      }
+      // Générer un ID unique avec format simple et robuste
+      const timestamp = Date.now();
+      const randomPart = Math.floor(Math.random() * 10000);
+      const uniqueId = `${activeTab}-${timestamp}-${randomPart}`;
+      // Créer l'élément final avec toutes les propriétés nécessaires
       const itemWithId = {
         ...itemToSave,
-        id: `${activeTab}-${Date.now()}`,
-        value: parseFloat(itemToSave.value as string)
+        id: uniqueId
       };
+      console.log('Élément final prêt à être ajouté:', itemWithId);
+      // Créer une copie complète des données financières actuelles
+      const currentData = JSON.parse(JSON.stringify(financialData));
+      // Ajouter le nouvel élément à la liste appropriée
+      const updatedItems = [...currentData[activeTab], itemWithId];
+      // Créer un nouvel objet de données financières
       const updatedData = {
-        ...financialData,
-        [activeTab]: [...financialData[activeTab], itemWithId]
+        ...currentData,
+        [activeTab]: updatedItems
       };
+      console.log('Données financières mises à jour:', updatedData);
+      // Mettre à jour l'état avec les nouvelles données
       setFinancialData(updatedData);
-      // Reset form
+      // Réinitialiser le formulaire
       setNewItem({
         value: '',
         category: '',
@@ -336,11 +385,22 @@ export function MappingScreen() {
         frequency: 'monthly',
         isRecurring: true
       });
+      // Fermer le formulaire d'ajout
       setIsAdding(false);
+      // Afficher une confirmation
       toast.success('Élément ajouté avec succès');
+      // Jouer le son de succès
+      try {
+        const audio = new Audio(SOUNDS.success);
+        audio.volume = 0.5;
+        audio.play().catch(e => console.log('Son désactivé:', e));
+      } catch (audioError) {
+        console.log('Erreur lors de la lecture du son:', audioError);
+      }
     } catch (error) {
-      console.error('Error adding item:', error);
-      toast.error("Erreur lors de l'ajout de l'élément");
+      // Gestion des erreurs globale
+      console.error("Erreur critique lors de l'ajout d'un élément:", error);
+      toast.error("Une erreur est survenue lors de l'ajout de l'élément");
     }
   };
   // Handle editing an item
@@ -355,49 +415,99 @@ export function MappingScreen() {
   };
   // Handle updating an edited item
   const handleUpdateItem = () => {
-    if (!editingItem || !editingItemId) return;
-    // Validate input
-    if (!editingItem.value || isNaN(parseFloat(editingItem.value as string))) {
-      toast.error('Veuillez entrer un montant valide');
-      return;
-    }
-    if (!editingItem.category) {
-      toast.error('Veuillez sélectionner une catégorie');
-      return;
-    }
     try {
+      if (!editingItem || !editingItemId) {
+        toast.error('Aucun élément à mettre à jour');
+        return;
+      }
+      console.log("Mise à jour de l'élément:", editingItem);
+      // Validation de base
+      if (!editingItem.value) {
+        toast.error('Veuillez entrer un montant');
+        return;
+      }
+      // Conversion de la valeur en nombre
+      let numericValue;
+      try {
+        numericValue = typeof editingItem.value === 'string' ? parseFloat(editingItem.value) : Number(editingItem.value);
+        if (isNaN(numericValue)) {
+          toast.error('Le montant doit être un nombre valide');
+          return;
+        }
+      } catch (error) {
+        console.error('Erreur lors de la conversion du montant:', error);
+        toast.error('Le montant est invalide');
+        return;
+      }
+      // Vérifier la catégorie
+      if (!editingItem.category) {
+        toast.error('Veuillez sélectionner une catégorie');
+        return;
+      }
+      // Créer une copie complète des données financières actuelles
+      const currentData = JSON.parse(JSON.stringify(financialData));
+      // Mettre à jour l'élément spécifique
+      const updatedItems = currentData[activeTab].map((item: any) => {
+        if (item.id === editingItemId) {
+          return {
+            ...editingItem,
+            value: numericValue
+          };
+        }
+        return item;
+      });
+      // Créer un nouvel objet de données financières
       const updatedData = {
-        ...financialData,
-        [activeTab]: financialData[activeTab].map(item => item.id === editingItemId ? {
-          ...editingItem,
-          value: parseFloat(editingItem.value as string)
-        } : item)
+        ...currentData,
+        [activeTab]: updatedItems
       };
+      console.log('Données financières après mise à jour:', updatedData);
+      // Mettre à jour l'état avec les nouvelles données
       setFinancialData(updatedData);
+      // Réinitialiser l'état d'édition
       setEditingItemId(null);
       setEditingItem(null);
+      // Afficher une confirmation
       toast.success('Élément mis à jour avec succès');
     } catch (error) {
-      console.error('Error updating item:', error);
-      toast.error("Erreur lors de la mise à jour de l'élément");
+      console.error("Erreur lors de la mise à jour de l'élément:", error);
+      toast.error('Une erreur est survenue lors de la mise à jour');
     }
   };
   // Handle deleting an item
   const handleDeleteItem = (id: string) => {
     try {
+      console.log("Suppression de l'élément avec ID:", id);
+      // Créer une copie complète des données financières actuelles
+      const currentData = JSON.parse(JSON.stringify(financialData));
+      // Filtrer pour supprimer l'élément spécifique
+      const updatedItems = currentData[activeTab].filter((item: any) => item.id !== id);
+      // Créer un nouvel objet de données financières
       const updatedData = {
-        ...financialData,
-        [activeTab]: financialData[activeTab].filter(item => item.id !== id)
+        ...currentData,
+        [activeTab]: updatedItems
       };
+      console.log('Données financières après suppression:', updatedData);
+      // Mettre à jour l'état avec les nouvelles données
       setFinancialData(updatedData);
+      // Réinitialiser l'état d'édition si nécessaire
       if (editingItemId === id) {
         setEditingItemId(null);
         setEditingItem(null);
       }
+      // Afficher une confirmation
       toast.success('Élément supprimé avec succès');
+      // Jouer le son de suppression
+      try {
+        const audio = new Audio(SOUNDS.delete);
+        audio.volume = 0.5;
+        audio.play().catch(e => console.log('Son désactivé:', e));
+      } catch (audioError) {
+        console.log('Erreur lors de la lecture du son:', audioError);
+      }
     } catch (error) {
-      console.error('Error deleting item:', error);
-      toast.error("Erreur lors de la suppression de l'élément");
+      console.error("Erreur lors de la suppression de l'élément:", error);
+      toast.error('Une erreur est survenue lors de la suppression');
     }
   };
   // Handle saving journal entry
@@ -781,29 +891,27 @@ export function MappingScreen() {
             <div>
               <div className="text-sm text-gray-400 mb-1">Revenus totaux</div>
               <div className="text-lg font-medium">
-                {totalIncome.toLocaleString('fr-FR')}
-                €<span className="text-xs text-gray-400 ml-1">/ mois</span>
+                {totalIncome.toLocaleString('fr-FR')}€
+                <span className="text-xs text-gray-400 ml-1">/ mois</span>
               </div>
             </div>
             <div>
               <div className="text-sm text-gray-400 mb-1">Dépenses totales</div>
               <div className="text-lg font-medium">
-                {totalExpenses.toLocaleString('fr-FR')}
-                €<span className="text-xs text-gray-400 ml-1">/ mois</span>
+                {totalExpenses.toLocaleString('fr-FR')}€
+                <span className="text-xs text-gray-400 ml-1">/ mois</span>
               </div>
             </div>
             <div>
               <div className="text-sm text-gray-400 mb-1">Épargne totale</div>
               <div className="text-lg font-medium">
-                {totalSavings.toLocaleString('fr-FR')}
-                €
+                {totalSavings.toLocaleString('fr-FR')}€
               </div>
             </div>
             <div>
               <div className="text-sm text-gray-400 mb-1">Dettes totales</div>
               <div className="text-lg font-medium">
-                {totalDebts.toLocaleString('fr-FR')}
-                €
+                {totalDebts.toLocaleString('fr-FR')}€
               </div>
             </div>
           </div>
@@ -814,8 +922,7 @@ export function MappingScreen() {
                   Balance mensuelle
                 </div>
                 <div className={`text-lg font-medium ${monthlyBalance >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                  {monthlyBalance.toLocaleString('fr-FR')}
-                  €
+                  {monthlyBalance.toLocaleString('fr-FR')}€
                 </div>
               </div>
               <div className="flex items-center">

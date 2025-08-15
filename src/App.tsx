@@ -20,6 +20,11 @@ import { Feedback } from './components/Feedback';
 import { FinancialSimulator } from './components/FinancialSimulator';
 import { EmotionalJournal } from './components/EmotionalJournal';
 import { HiddenFeesDetector } from './components/HiddenFeesDetector';
+// Désactiver les restrictions premium globalement
+if (window) {
+  window.PREMIUM_ENABLED = true;
+  window.DISABLE_PREMIUM_RESTRICTIONS = true;
+}
 export function App() {
   const {
     hasCompletedOnboarding
