@@ -300,20 +300,27 @@ export function MappingScreen() {
       toast.error('Veuillez entrer un montant valide');
       return;
     }
-    if (!newItem.category) {
-      toast.error('Veuillez sélectionner une catégorie');
-      return;
-    }
+
     try {
+      let itemToSave = { ...newItem };
+
       // Auto-categorize if not already set
-      if (!newItem.category && newItem.description) {
-        const suggestedCategory = await categorizeTransaction(newItem.description, activeTab.slice(0, -1) as 'income' | 'expense' | 'saving' | 'debt', parseFloat(newItem.value as string));
-        newItem.category = suggestedCategory;
+      if (!itemToSave.category && itemToSave.description) {
+        const suggestedCategory = await categorizeTransaction(itemToSave.description, activeTab.slice(0, -1) as 'income' | 'expense' | 'saving' | 'debt', parseFloat(itemToSave.value as string));
+        itemToSave.category = suggestedCategory;
       }
+
+      // Validate category after auto-categorization attempt
+      if (!itemToSave.category) {
+        toast.error('Veuillez sélectionner une catégorie');
+        return;
+      }
+
       // Add the new item with a unique ID
       const itemWithId = {
-        ...newItem,
-        id: `${activeTab}-${Date.now()}`
+        ...itemToSave,
+        id: `${activeTab}-${Date.now()}`,
+        value: parseFloat(itemToSave.value as string)
       };
       const updatedData = {
         ...financialData,
@@ -360,7 +367,7 @@ export function MappingScreen() {
     try {
       const updatedData = {
         ...financialData,
-        [activeTab]: financialData[activeTab].map(item => item.id === editingItemId ? editingItem : item)
+        [activeTab]: financialData[activeTab].map(item => item.id === editingItemId ? { ...editingItem, value: parseFloat(editingItem.value as string) } : item)
       };
       setFinancialData(updatedData);
       setEditingItemId(null);

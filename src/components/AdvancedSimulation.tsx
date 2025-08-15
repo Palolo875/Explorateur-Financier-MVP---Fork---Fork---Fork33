@@ -82,230 +82,233 @@ export function AdvancedSimulation() {
   const [isInitialized, setIsInitialized] = useState(false);
   // Calculate default simulation on mount
   useEffect(() => {
-    try {
-      setIsLoading(true);
-      // Create default simulations
-      const defaultSimulation = {
-        name: 'Simulation par défaut',
-        params: {
+    const initializeSimulations = async () => {
+      try {
+        setIsLoading(true);
+        // Create default simulations
+        const defaultSimulation = {
           name: 'Simulation par défaut',
-          incomeGrowth: 2,
-          expenseReduction: 1,
-          savingsRate: 50,
-          investmentReturn: 5,
-          inflationRate: 2,
-          years: 10
-        },
-        results: runSimulation({
-          name: 'Simulation par défaut',
-          incomeGrowth: 2,
-          expenseReduction: 1,
-          savingsRate: 50,
-          investmentReturn: 5,
-          inflationRate: 2,
-          years: 10
-        })
-      };
-      const optimisticSimulation = {
-        name: 'Scénario optimiste',
-        params: {
+          params: {
+            name: 'Simulation par défaut',
+            incomeGrowth: 2,
+            expenseReduction: 1,
+            savingsRate: 50,
+            investmentReturn: 5,
+            inflationRate: 2,
+            years: 10
+          },
+          results: await runSimulation({
+            name: 'Simulation par défaut',
+            incomeGrowth: 2,
+            expenseReduction: 1,
+            savingsRate: 50,
+            investmentReturn: 5,
+            inflationRate: 2,
+            years: 10
+          })
+        };
+        const optimisticSimulation = {
           name: 'Scénario optimiste',
-          incomeGrowth: 4,
-          expenseReduction: 2,
-          savingsRate: 70,
-          investmentReturn: 7,
-          inflationRate: 2,
-          years: 10
-        },
-        results: runSimulation({
-          name: 'Scénario optimiste',
-          incomeGrowth: 4,
-          expenseReduction: 2,
-          savingsRate: 70,
-          investmentReturn: 7,
-          inflationRate: 2,
-          years: 10
-        })
-      };
-      const conservativeSimulation = {
-        name: 'Scénario conservateur',
-        params: {
+          params: {
+            name: 'Scénario optimiste',
+            incomeGrowth: 4,
+            expenseReduction: 2,
+            savingsRate: 70,
+            investmentReturn: 7,
+            inflationRate: 2,
+            years: 10
+          },
+          results: await runSimulation({
+            name: 'Scénario optimiste',
+            incomeGrowth: 4,
+            expenseReduction: 2,
+            savingsRate: 70,
+            investmentReturn: 7,
+            inflationRate: 2,
+            years: 10
+          })
+        };
+        const conservativeSimulation = {
           name: 'Scénario conservateur',
-          incomeGrowth: 1,
-          expenseReduction: 0.5,
-          savingsRate: 30,
-          investmentReturn: 3,
+          params: {
+            name: 'Scénario conservateur',
+            incomeGrowth: 1,
+            expenseReduction: 0.5,
+            savingsRate: 30,
+            investmentReturn: 3,
+            inflationRate: 2,
+            years: 10
+          },
+          results: await runSimulation({
+            name: 'Scénario conservateur',
+            incomeGrowth: 1,
+            expenseReduction: 0.5,
+            savingsRate: 30,
+            investmentReturn: 3,
+            inflationRate: 2,
+            years: 10
+          })
+        };
+        // Create default goals
+        const emergencyFundGoal: GoalSimulation = {
+          id: '1',
+          name: "Fonds d'urgence",
+          targetAmount: 10000,
+          currentAmount: 2000,
+          monthlyContribution: 300,
+          interestRate: 1,
           inflationRate: 2,
-          years: 10
-        },
-        results: runSimulation({
-          name: 'Scénario conservateur',
-          incomeGrowth: 1,
-          expenseReduction: 0.5,
-          savingsRate: 30,
-          investmentReturn: 3,
+          years: 3,
+          results: calculateGoalResults(10000, 2000, 300, 1, 2, 3)
+        };
+        const vacationGoal: GoalSimulation = {
+          id: '2',
+          name: 'Vacances',
+          targetAmount: 5000,
+          currentAmount: 1500,
+          monthlyContribution: 200,
+          interestRate: 1,
           inflationRate: 2,
-          years: 10
-        })
-      };
-      // Create default goals
-      const emergencyFundGoal: GoalSimulation = {
-        id: '1',
-        name: "Fonds d'urgence",
-        targetAmount: 10000,
-        currentAmount: 2000,
-        monthlyContribution: 300,
-        interestRate: 1,
-        inflationRate: 2,
-        years: 3,
-        results: calculateGoalResults(10000, 2000, 300, 1, 2, 3)
-      };
-      const vacationGoal: GoalSimulation = {
-        id: '2',
-        name: 'Vacances',
-        targetAmount: 5000,
-        currentAmount: 1500,
-        monthlyContribution: 200,
-        interestRate: 1,
-        inflationRate: 2,
-        years: 2,
-        results: calculateGoalResults(5000, 1500, 200, 1, 2, 2)
-      };
-      const homeDownPaymentGoal: GoalSimulation = {
-        id: '3',
-        name: 'Apport immobilier',
-        targetAmount: 50000,
-        currentAmount: 10000,
-        monthlyContribution: 600,
-        interestRate: 3,
-        inflationRate: 2,
-        years: 5,
-        results: calculateGoalResults(50000, 10000, 600, 3, 2, 5)
-      };
-      // Create default scenarios
-      const baseScenario: ScenarioComparison = {
-        name: 'Situation actuelle',
-        description: 'Votre situation financière actuelle sans changement',
-        params: {
+          years: 2,
+          results: calculateGoalResults(5000, 1500, 200, 1, 2, 2)
+        };
+        const homeDownPaymentGoal: GoalSimulation = {
+          id: '3',
+          name: 'Apport immobilier',
+          targetAmount: 50000,
+          currentAmount: 10000,
+          monthlyContribution: 600,
+          interestRate: 3,
+          inflationRate: 2,
+          years: 5,
+          results: calculateGoalResults(50000, 10000, 600, 3, 2, 5)
+        };
+        // Create default scenarios
+        const baseScenario: ScenarioComparison = {
           name: 'Situation actuelle',
-          incomeGrowth: 2,
-          expenseReduction: 0,
-          savingsRate: calculateSavingsRate(),
-          investmentReturn: 3,
-          inflationRate: 2,
-          years: 10
-        },
-        results: runSimulation({
-          name: 'Situation actuelle',
-          incomeGrowth: 2,
-          expenseReduction: 0,
-          savingsRate: calculateSavingsRate(),
-          investmentReturn: 3,
-          inflationRate: 2,
-          years: 10
-        })
-      };
-      const expenseReductionScenario: ScenarioComparison = {
-        name: 'Réduction des dépenses',
-        description: 'Réduction des dépenses de 15% et maintien des revenus',
-        params: {
+          description: 'Votre situation financière actuelle sans changement',
+          params: {
+            name: 'Situation actuelle',
+            incomeGrowth: 2,
+            expenseReduction: 0,
+            savingsRate: calculateSavingsRate(),
+            investmentReturn: 3,
+            inflationRate: 2,
+            years: 10
+          },
+          results: await runSimulation({
+            name: 'Situation actuelle',
+            incomeGrowth: 2,
+            expenseReduction: 0,
+            savingsRate: calculateSavingsRate(),
+            investmentReturn: 3,
+            inflationRate: 2,
+            years: 10
+          })
+        };
+        const expenseReductionScenario: ScenarioComparison = {
           name: 'Réduction des dépenses',
-          incomeGrowth: 2,
-          expenseReduction: 15,
-          savingsRate: calculateSavingsRate() + 10,
-          investmentReturn: 3,
-          inflationRate: 2,
-          years: 10
-        },
-        results: runSimulation({
-          name: 'Réduction des dépenses',
-          incomeGrowth: 2,
-          expenseReduction: 15,
-          savingsRate: calculateSavingsRate() + 10,
-          investmentReturn: 3,
-          inflationRate: 2,
-          years: 10
-        })
-      };
-      const incomeIncreaseScenario: ScenarioComparison = {
-        name: 'Augmentation des revenus',
-        description: 'Augmentation des revenus de 20% sur 5 ans',
-        params: {
+          description: 'Réduction des dépenses de 15% et maintien des revenus',
+          params: {
+            name: 'Réduction des dépenses',
+            incomeGrowth: 2,
+            expenseReduction: 15,
+            savingsRate: calculateSavingsRate() + 10,
+            investmentReturn: 3,
+            inflationRate: 2,
+            years: 10
+          },
+          results: await runSimulation({
+            name: 'Réduction des dépenses',
+            incomeGrowth: 2,
+            expenseReduction: 15,
+            savingsRate: calculateSavingsRate() + 10,
+            investmentReturn: 3,
+            inflationRate: 2,
+            years: 10
+          })
+        };
+        const incomeIncreaseScenario: ScenarioComparison = {
           name: 'Augmentation des revenus',
-          incomeGrowth: 4,
-          expenseReduction: 0,
-          savingsRate: calculateSavingsRate() + 5,
-          investmentReturn: 3,
-          inflationRate: 2,
-          years: 10
-        },
-        results: runSimulation({
-          name: 'Augmentation des revenus',
-          incomeGrowth: 4,
-          expenseReduction: 0,
-          savingsRate: calculateSavingsRate() + 5,
-          investmentReturn: 3,
-          inflationRate: 2,
-          years: 10
-        })
-      };
-      const investmentScenario: ScenarioComparison = {
-        name: 'Investissements optimisés',
-        description: 'Optimisation des investissements pour un rendement de 6%',
-        params: {
+          description: 'Augmentation des revenus de 20% sur 5 ans',
+          params: {
+            name: 'Augmentation des revenus',
+            incomeGrowth: 4,
+            expenseReduction: 0,
+            savingsRate: calculateSavingsRate() + 5,
+            investmentReturn: 3,
+            inflationRate: 2,
+            years: 10
+          },
+          results: await runSimulation({
+            name: 'Augmentation des revenus',
+            incomeGrowth: 4,
+            expenseReduction: 0,
+            savingsRate: calculateSavingsRate() + 5,
+            investmentReturn: 3,
+            inflationRate: 2,
+            years: 10
+          })
+        };
+        const investmentScenario: ScenarioComparison = {
           name: 'Investissements optimisés',
-          incomeGrowth: 2,
-          expenseReduction: 0,
-          savingsRate: calculateSavingsRate(),
-          investmentReturn: 6,
-          inflationRate: 2,
-          years: 10
-        },
-        results: runSimulation({
-          name: 'Investissements optimisés',
-          incomeGrowth: 2,
-          expenseReduction: 0,
-          savingsRate: calculateSavingsRate(),
-          investmentReturn: 6,
-          inflationRate: 2,
-          years: 10
-        })
-      };
-      const combinedScenario: ScenarioComparison = {
-        name: 'Stratégie combinée',
-        description: "Combinaison de réduction des dépenses et d'optimisation des investissements",
-        params: {
+          description: 'Optimisation des investissements pour un rendement de 6%',
+          params: {
+            name: 'Investissements optimisés',
+            incomeGrowth: 2,
+            expenseReduction: 0,
+            savingsRate: calculateSavingsRate(),
+            investmentReturn: 6,
+            inflationRate: 2,
+            years: 10
+          },
+          results: await runSimulation({
+            name: 'Investissements optimisés',
+            incomeGrowth: 2,
+            expenseReduction: 0,
+            savingsRate: calculateSavingsRate(),
+            investmentReturn: 6,
+            inflationRate: 2,
+            years: 10
+          })
+        };
+        const combinedScenario: ScenarioComparison = {
           name: 'Stratégie combinée',
-          incomeGrowth: 3,
-          expenseReduction: 10,
-          savingsRate: calculateSavingsRate() + 15,
-          investmentReturn: 5,
-          inflationRate: 2,
-          years: 10
-        },
-        results: runSimulation({
-          name: 'Stratégie combinée',
-          incomeGrowth: 3,
-          expenseReduction: 10,
-          savingsRate: calculateSavingsRate() + 15,
-          investmentReturn: 5,
-          inflationRate: 2,
-          years: 10
-        })
-      };
-      // Set state
-      setSimulations([defaultSimulation, optimisticSimulation, conservativeSimulation]);
-      setActiveSimulation(defaultSimulation.name);
-      setGoals([emergencyFundGoal, vacationGoal, homeDownPaymentGoal]);
-      setScenarios([baseScenario, expenseReductionScenario, incomeIncreaseScenario, investmentScenario, combinedScenario]);
-      setActiveScenario(baseScenario.name);
-      setIsInitialized(true);
-    } catch (error) {
-      console.error('Initialization error:', error);
-    } finally {
-      setIsLoading(false);
+          description: "Combinaison de réduction des dépenses et d'optimisation des investissements",
+          params: {
+            name: 'Stratégie combinée',
+            incomeGrowth: 3,
+            expenseReduction: 10,
+            savingsRate: calculateSavingsRate() + 15,
+            investmentReturn: 5,
+            inflationRate: 2,
+            years: 10
+          },
+          results: await runSimulation({
+            name: 'Stratégie combinée',
+            incomeGrowth: 3,
+            expenseReduction: 10,
+            savingsRate: calculateSavingsRate() + 15,
+            investmentReturn: 5,
+            inflationRate: 2,
+            years: 10
+          })
+        };
+        // Set state
+        setSimulations([defaultSimulation, optimisticSimulation, conservativeSimulation]);
+        setActiveSimulation(defaultSimulation.name);
+        setGoals([emergencyFundGoal, vacationGoal, homeDownPaymentGoal]);
+        setScenarios([baseScenario, expenseReductionScenario, incomeIncreaseScenario, investmentScenario, combinedScenario]);
+        setActiveScenario(baseScenario.name);
+        setIsInitialized(true);
+      } catch (error) {
+        console.error('Initialization error:', error);
+      } finally {
+        setIsLoading(false);
+      }
     }
-  }, []);
+    initializeSimulations();
+  }, [financialData, runSimulation, calculateTotalIncome, calculateTotalExpenses]);
   // Guard clause for initialization
   if (!isInitialized && isLoading) {
     return <div className="w-full h-screen flex items-center justify-center">
