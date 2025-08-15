@@ -26,44 +26,50 @@ export function Reports() {
   const [exportLoading, setExportLoading] = useState(false);
   // Generate example reports on mount
   useEffect(() => {
-    const insights = generateInsights() || []; // Provide empty array fallback
-    const simulationResults = runSimulation({
-      name: 'Simulation standard',
-      incomeGrowth: 2,
-      expenseReduction: 1,
-      savingsRate: 50,
-      investmentReturn: 5,
-      inflationRate: 2,
-      years: 10
-    });
-    const reports: FinancialReport[] = [{
-      id: '1',
-      title: 'Rapport financier mensuel',
-      date: dayjs().subtract(2, 'day').toISOString(),
-      insights: insights,
-      summary: "Ce rapport mensuel met en évidence une amélioration de votre taux d'épargne de 3% par rapport au mois précédent. Vos dépenses en loisirs ont diminué, tandis que vos revenus sont restés stables.",
-      recommendations: ['Continuez à optimiser vos dépenses en loisirs', "Envisagez d'investir votre surplus d'épargne", 'Revoyez votre budget alimentaire qui a augmenté de 5%'],
-      simulationResults
-    }, {
-      id: '2',
-      title: "Analyse d'objectif d'achat immobilier",
-      date: dayjs().subtract(15, 'day').toISOString(),
-      insights: insights.filter(i => i.category === 'savings' || i.category === 'expense') || [],
-      summary: "Cette analyse évalue votre capacité à atteindre votre objectif d'achat immobilier. Avec votre taux d'épargne actuel, vous pourriez constituer un apport de 50 000€ en 7 ans et 3 mois.",
-      recommendations: ["Augmentez votre taux d'épargne de 5% pour réduire le délai à 6 ans", "Explorez les aides à l'accession à la propriété", 'Optimisez vos placements pour un meilleur rendement'],
-      simulationResults
-    }, {
-      id: '3',
-      title: 'Audit financier trimestriel',
-      date: dayjs().subtract(45, 'day').toISOString(),
-      insights: insights,
-      summary: "Ce rapport trimestriel analyse l'évolution de votre situation financière. Votre patrimoine net a augmenté de 4.2% ce trimestre, principalement grâce à la performance de vos investissements.",
-      recommendations: ["Rééquilibrez votre portefeuille d'investissement", 'Consolidez vos petites dettes', "Augmentez votre fonds d'urgence pour atteindre 6 mois de dépenses"],
-      simulationResults
-    }];
-    setReports(reports);
-    setSelectedReport(reports[0]);
-  }, []);
+    const generateReports = async () => {
+      const insights = await generateInsights();
+      const simulationResults = await runSimulation({
+        name: 'Simulation standard',
+        incomeGrowth: 2,
+        expenseReduction: 1,
+        savingsRate: 50,
+        investmentReturn: 5,
+        inflationRate: 2,
+        years: 10
+      });
+
+      const reports: FinancialReport[] = [{
+        id: '1',
+        title: 'Rapport financier mensuel',
+        date: dayjs().subtract(2, 'day').toISOString(),
+        insights: insights,
+        summary: "Ce rapport mensuel met en évidence une amélioration de votre taux d'épargne de 3% par rapport au mois précédent. Vos dépenses en loisirs ont diminué, tandis que vos revenus sont restés stables.",
+        recommendations: ['Continuez à optimiser vos dépenses en loisirs', "Envisagez d'investir votre surplus d'épargne", 'Revoyez votre budget alimentaire qui a augmenté de 5%'],
+        simulationResults
+      }, {
+        id: '2',
+        title: "Analyse d'objectif d'achat immobilier",
+        date: dayjs().subtract(15, 'day').toISOString(),
+        insights: insights.filter(i => i.category === 'savings' || i.category === 'expense') || [],
+        summary: "Cette analyse évalue votre capacité à atteindre votre objectif d'achat immobilier. Avec votre taux d'épargne actuel, vous pourriez constituer un apport de 50 000€ en 7 ans et 3 mois.",
+        recommendations: ["Augmentez votre taux d'épargne de 5% pour réduire le délai à 6 ans", "Explorez les aides à l'accession à la propriété", 'Optimisez vos placements pour un meilleur rendement'],
+        simulationResults
+      }, {
+        id: '3',
+        title: 'Audit financier trimestriel',
+        date: dayjs().subtract(45, 'day').toISOString(),
+        insights: insights,
+        summary: "Ce rapport trimestriel analyse l'évolution de votre situation financière. Votre patrimoine net a augmenté de 4.2% ce trimestre, principalement grâce à la performance de vos investissements.",
+        recommendations: ["Rééquilibrez votre portefeuille d'investissement", 'Consolidez vos petites dettes', "Augmentez votre fonds d'urgence pour atteindre 6 mois de dépenses"],
+        simulationResults
+      }];
+      setReports(reports);
+      if (reports.length > 0) {
+        setSelectedReport(reports[0]);
+      }
+    };
+    generateReports();
+  }, [generateInsights, runSimulation]);
   const formatDate = (dateString: string) => {
     return dayjs(dateString).format('DD MMMM YYYY');
   };
