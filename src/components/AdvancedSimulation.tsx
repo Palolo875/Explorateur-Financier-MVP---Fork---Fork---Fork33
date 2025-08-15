@@ -451,7 +451,6 @@ export function AdvancedSimulation() {
       return 0;
     }
   };
-
   // Get active simulation data
   const activeSimulationData = simulations.find(sim => sim.name === activeSimulation);
   // Get active scenario data
@@ -1013,12 +1012,6 @@ export function AdvancedSimulation() {
                   Objectifs financiers
                 </h3>
                 <div className="flex items-center">
-                  <span className="text-xs bg-green-500/20 text-green-300 px-2 py-0.5 rounded-full flex items-center">
-                    <UnlockIcon className="h-3 w-3 mr-1" />
-                    Activé
-                  <span className="text-xs bg-green-500/20 text-green-300 px-2 py-0.5 rounded-full flex items-center">
-                    <UnlockIcon className="h-3 w-3 mr-1" />
-                    Activé
                   <span className="text-xs bg-green-500/20 text-green-300 px-2 py-0.5 rounded-full flex items-center">
                     <UnlockIcon className="h-3 w-3 mr-1" />
                     Activé
