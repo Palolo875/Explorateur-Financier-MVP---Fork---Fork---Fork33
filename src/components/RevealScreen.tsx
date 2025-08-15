@@ -138,7 +138,7 @@ export function RevealScreen() {
       }
     };
     loadAnalysisData();
-  }, []);
+  }, [financialData]);
   // Basculer l'état d'expansion d'une section
   const toggleSection = (sectionId: string) => {
     setExpandedSections({
@@ -354,7 +354,7 @@ export function RevealScreen() {
                         <div className="pt-4 mt-4 border-t border-white/10">
                           {/* Contenu des insights financiers */}
                           {section.id === 'insights' && <div className="space-y-4">
-                              {insights.length > 0 ? insights.map(insight => <MemoizedInsight key={insight.id || Math.random().toString()} insight={insight} />) : <div className="text-center py-6 text-gray-400">
+                              {insights.length > 0 ? insights.map(insight => <MemoizedInsight key={insight.id} insight={insight} />) : <div className="text-center py-6 text-gray-400">
                                   <p>Aucun insight financier disponible</p>
                                   <p className="text-sm mt-1">
                                     Ajoutez plus de données financières pour
@@ -428,7 +428,7 @@ export function RevealScreen() {
                                     <span className="text-sm">Revenus</span>
                                     <div className="flex items-center">
                                       <span className="text-sm font-medium mr-2">
-                                        {totalIncome > 2500 ? '+12%' : '-8%'}
+                                        {totalIncome > 2500 ? `+${((totalIncome/2500 - 1)*100).toFixed(0)}%` : `-${((1 - totalIncome/2500)*100).toFixed(0)}%`}
                                       </span>
                                       {totalIncome > 2500 ? <TrendingUpIcon className="h-4 w-4 text-green-400" /> : <TrendingDownIcon className="h-4 w-4 text-red-400" />}
                                     </div>
@@ -437,7 +437,7 @@ export function RevealScreen() {
                                     <span className="text-sm">Dépenses</span>
                                     <div className="flex items-center">
                                       <span className="text-sm font-medium mr-2">
-                                        {totalExpenses < 2000 ? '-5%' : '+10%'}
+                                        {totalExpenses < 2000 ? `-${((1-totalExpenses/2000)*100).toFixed(0)}%` : `+${((totalExpenses/2000-1)*100).toFixed(0)}%`}
                                       </span>
                                       {totalExpenses < 2000 ? <TrendingDownIcon className="h-4 w-4 text-green-400" /> : <TrendingUpIcon className="h-4 w-4 text-red-400" />}
                                     </div>
@@ -448,7 +448,7 @@ export function RevealScreen() {
                                     </span>
                                     <div className="flex items-center">
                                       <span className="text-sm font-medium mr-2">
-                                        {savingsRate > 15 ? '+8%' : '-6%'}
+                                        {savingsRate > 15 ? `+${((savingsRate/15-1)*100).toFixed(0)}%` : `-${((1-savingsRate/15)*100).toFixed(0)}%`}
                                       </span>
                                       {savingsRate > 15 ? <TrendingUpIcon className="h-4 w-4 text-green-400" /> : <TrendingDownIcon className="h-4 w-4 text-red-400" />}
                                     </div>

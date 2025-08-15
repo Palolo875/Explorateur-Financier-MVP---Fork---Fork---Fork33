@@ -160,8 +160,6 @@ export function MappingScreen() {
   // State for editing items
   const [editingItemId, setEditingItemId] = useState<string | null>(null);
   const [editingItem, setEditingItem] = useState<FinancialItem | null>(null);
-  // State for financial data
-  const [localFinancialData, setLocalFinancialData] = useState(financialData);
   // State for emotional journal entry
   const [journalEntry, setJournalEntry] = useState('');
   const [showJournal, setShowJournal] = useState(false);
@@ -173,17 +171,14 @@ export function MappingScreen() {
   // State for contextual tags
   const [availableTags, setAvailableTags] = useState<string[]>([]);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
-  // Update local financial data when context data changes
-  useEffect(() => {
-    setLocalFinancialData(financialData);
-  }, [financialData]);
+
   // Calculate financial health score
   useEffect(() => {
     // Simple scoring algorithm based on income, expenses, savings, and debts
-    const totalIncome = calculateTotal(localFinancialData.incomes);
-    const totalExpenses = calculateTotal(localFinancialData.expenses);
-    const totalSavings = calculateTotal(localFinancialData.savings);
-    const totalDebts = calculateTotal(localFinancialData.debts);
+    const totalIncome = calculateTotal(financialData.incomes);
+    const totalExpenses = calculateTotal(financialData.expenses);
+    const totalSavings = calculateTotal(financialData.savings);
+    const totalDebts = calculateTotal(financialData.debts);
     let score = 50; // Base score
     // Adjust for income vs expenses
     if (totalIncome > totalExpenses) {
@@ -202,32 +197,32 @@ export function MappingScreen() {
     // Ensure score is between 0 and 100
     score = Math.max(0, Math.min(100, score));
     setHealthScore(score);
-  }, [localFinancialData]);
+  }, [financialData]);
   // Generate behavioral insights
   useEffect(() => {
-    if (emotionalContext && localFinancialData) {
+    if (emotionalContext && financialData) {
       const newInsights = [];
       // Check for emotional spending patterns
-      if (emotionalContext.mood > 7 && localFinancialData.expenses.length > 0) {
+      if (emotionalContext.mood > 7 && financialData.expenses.length > 0) {
         newInsights.push('Votre niveau de stress élevé pourrait influencer vos dépenses impulsives. Essayez la règle des 24h avant tout achat non essentiel.');
       }
       // Check for savings vs mood
-      if (emotionalContext.mood < 5 && localFinancialData.savings.length > 0) {
+      if (emotionalContext.mood < 5 && financialData.savings.length > 0) {
         newInsights.push("Les jours où votre humeur est basse, vous avez tendance à moins épargner. Envisagez d'automatiser vos virements d'épargne.");
       }
       // Check for income diversification
-      if (localFinancialData.incomes.length === 1) {
+      if (financialData.incomes.length === 1) {
         newInsights.push("Vous dépendez d'une seule source de revenu, ce qui peut représenter un risque. Envisagez de développer des sources complémentaires.");
       }
       // Check for debt vs income ratio
-      const totalIncome = calculateTotal(localFinancialData.incomes);
-      const totalDebt = calculateTotal(localFinancialData.debts);
+      const totalIncome = calculateTotal(financialData.incomes);
+      const totalDebt = calculateTotal(financialData.debts);
       if (totalIncome > 0 && totalDebt / totalIncome > 0.4) {
         newInsights.push('Votre ratio dette/revenu est supérieur à 40%, ce qui est considéré comme élevé. Priorisez le remboursement de vos dettes.');
       }
       setInsights(newInsights);
     }
-  }, [emotionalContext, localFinancialData]);
+  }, [emotionalContext, financialData]);
   // Generate contextual tags based on time, day, and financial data
   useEffect(() => {
     const now = new Date();
@@ -251,15 +246,15 @@ export function MappingScreen() {
       tags.push('Semaine');
     }
     // Financial data based tags
-    const totalIncome = calculateTotal(localFinancialData.incomes);
-    const totalExpenses = calculateTotal(localFinancialData.expenses);
+    const totalIncome = calculateTotal(financialData.incomes);
+    const totalExpenses = calculateTotal(financialData.expenses);
     if (totalExpenses > totalIncome * 0.8) {
       tags.push('Budget serré');
     }
-    if (localFinancialData.savings.length > 0) {
+    if (financialData.savings.length > 0) {
       tags.push('Épargnant');
     }
-    if (localFinancialData.debts.length > 0) {
+    if (financialData.debts.length > 0) {
       tags.push('Dette active');
     }
     // Emotional context based tags
@@ -277,7 +272,7 @@ export function MappingScreen() {
       });
     }
     setAvailableTags([...new Set([...tags, 'Travail', 'Famille', 'Santé', 'Loisir', 'Urgence'])]);
-  }, [emotionalContext, localFinancialData]);
+  }, [emotionalContext, financialData]);
   // Helper function to calculate total value of financial items
   const calculateTotal = (items: FinancialItem[]) => {
     return items.reduce((sum, item) => {
@@ -286,10 +281,10 @@ export function MappingScreen() {
     }, 0);
   };
   // Memoized totals
-  const totalIncome = useMemo(() => calculateTotal(localFinancialData.incomes), [localFinancialData.incomes]);
-  const totalExpenses = useMemo(() => calculateTotal(localFinancialData.expenses), [localFinancialData.expenses]);
-  const totalSavings = useMemo(() => calculateTotal(localFinancialData.savings), [localFinancialData.savings]);
-  const totalDebts = useMemo(() => calculateTotal(localFinancialData.debts), [localFinancialData.debts]);
+  const totalIncome = useMemo(() => calculateTotal(financialData.incomes), [financialData.incomes]);
+  const totalExpenses = useMemo(() => calculateTotal(financialData.expenses), [financialData.expenses]);
+  const totalSavings = useMemo(() => calculateTotal(financialData.savings), [financialData.savings]);
+  const totalDebts = useMemo(() => calculateTotal(financialData.debts), [financialData.debts]);
   const monthlyBalance = useMemo(() => totalIncome - totalExpenses, [totalIncome, totalExpenses]);
   // Handle tab change
   const handleTabChange = (tab: 'incomes' | 'expenses' | 'savings' | 'debts') => {
@@ -321,10 +316,9 @@ export function MappingScreen() {
         id: `${activeTab}-${Date.now()}`
       };
       const updatedData = {
-        ...localFinancialData,
-        [activeTab]: [...localFinancialData[activeTab], itemWithId]
+        ...financialData,
+        [activeTab]: [...financialData[activeTab], itemWithId]
       };
-      setLocalFinancialData(updatedData);
       setFinancialData(updatedData);
       // Reset form
       setNewItem({
@@ -343,7 +337,7 @@ export function MappingScreen() {
   };
   // Handle editing an item
   const handleEditItem = (id: string) => {
-    const item = localFinancialData[activeTab].find(item => item.id === id);
+    const item = financialData[activeTab].find(item => item.id === id);
     if (item) {
       setEditingItem({
         ...item
@@ -365,10 +359,9 @@ export function MappingScreen() {
     }
     try {
       const updatedData = {
-        ...localFinancialData,
-        [activeTab]: localFinancialData[activeTab].map(item => item.id === editingItemId ? editingItem : item)
+        ...financialData,
+        [activeTab]: financialData[activeTab].map(item => item.id === editingItemId ? editingItem : item)
       };
-      setLocalFinancialData(updatedData);
       setFinancialData(updatedData);
       setEditingItemId(null);
       setEditingItem(null);
@@ -382,10 +375,9 @@ export function MappingScreen() {
   const handleDeleteItem = (id: string) => {
     try {
       const updatedData = {
-        ...localFinancialData,
-        [activeTab]: localFinancialData[activeTab].filter(item => item.id !== id)
+        ...financialData,
+        [activeTab]: financialData[activeTab].filter(item => item.id !== id)
       };
-      setLocalFinancialData(updatedData);
       setFinancialData(updatedData);
       if (editingItemId === id) {
         setEditingItemId(null);
@@ -417,14 +409,10 @@ export function MappingScreen() {
   };
   // Handle continue to next screen
   const handleContinue = () => {
-    // Save all data to context
-    setFinancialData(localFinancialData);
     // Set onboarding completion status
     setHasCompletedOnboarding(true);
-    // Use setTimeout to ensure state updates are processed before navigation
-    setTimeout(() => {
-      navigate('/reveal');
-    }, 0);
+    // Navigate to the reveal screen
+    navigate('/reveal');
   };
   // Get categories based on active tab
   const getCategories = () => {
@@ -596,13 +584,13 @@ export function MappingScreen() {
         </div>
         {/* List of items */}
         <div className="mb-4">
-          {localFinancialData[activeTab].length === 0 ? <div className="text-center py-8">
+          {financialData[activeTab].length === 0 ? <div className="text-center py-8">
               <p className="text-gray-400 mb-2">Aucun élément ajouté</p>
               <p className="text-sm text-gray-500">
                 Cliquez sur "Ajouter" pour commencer
               </p>
             </div> : <div className="space-y-3">
-              {localFinancialData[activeTab].map(item => <div key={item.id} className="bg-black/20 p-3 rounded-lg">
+              {financialData[activeTab].map(item => <div key={item.id} className="bg-black/20 p-3 rounded-lg">
                   {editingItemId === item.id ?
             // Editing mode
             <div>

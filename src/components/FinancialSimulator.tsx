@@ -22,6 +22,7 @@ interface SimulationResult {
   expenses: number[];
   savings: number[];
   netWorth: number[];
+  params: SimulationParams;
 }
 export function FinancialSimulator() {
   const {
@@ -47,6 +48,7 @@ export function FinancialSimulator() {
   });
   // State for simulation results
   const [results, setResults] = useState<SimulationResult | null>(null);
+  const [simulationParams, setSimulationParams] = useState<SimulationParams>(params);
   const [savedSimulations, setSavedSimulations] = useState<SimulationResult[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [showAdvancedOptions, setShowAdvancedOptions] = useState(false);
@@ -63,17 +65,12 @@ export function FinancialSimulator() {
       name: "Perte d'emploi"
     },
     crisisFunction: (result: SimulationResult) => {
-      // Simulate job loss at year 2 for 6 months
-      const newResult = {
-        ...result
-      };
-      // Reduce income by 70% for 6 months in year 2
+      const newResult = JSON.parse(JSON.stringify(result));
       const yearIndex = 2;
       if (yearIndex < newResult.income.length) {
-        newResult.income[yearIndex] = newResult.income[yearIndex] * 0.3;
-        // Adjust savings and net worth accordingly
+        newResult.income[yearIndex] *= 0.3;
         newResult.savings[yearIndex] = Math.max(0, newResult.savings[yearIndex] - newResult.expenses[yearIndex] * 0.7);
-        newResult.netWorth[yearIndex] = newResult.netWorth[yearIndex] - newResult.expenses[yearIndex] * 0.7;
+        newResult.netWorth[yearIndex] -= newResult.expenses[yearIndex] * 0.7;
       }
       return newResult;
     }
@@ -88,16 +85,13 @@ export function FinancialSimulator() {
       name: 'Urgence médicale'
     },
     crisisFunction: (result: SimulationResult) => {
-      // Simulate medical emergency with large one-time expense in year 1
-      const newResult = {
-        ...result
-      };
+      const newResult = JSON.parse(JSON.stringify(result));
       const yearIndex = 1;
       if (yearIndex < newResult.expenses.length) {
-        const emergencyCost = calculateTotalIncome() * 6; // 6 months of income
+        const emergencyCost = calculateTotalIncome() * 6;
         newResult.expenses[yearIndex] += emergencyCost;
         newResult.savings[yearIndex] = Math.max(0, newResult.savings[yearIndex] - emergencyCost);
-        newResult.netWorth[yearIndex] = newResult.netWorth[yearIndex] - emergencyCost;
+        newResult.netWorth[yearIndex] -= emergencyCost;
       }
       return newResult;
     }
@@ -123,16 +117,12 @@ export function FinancialSimulator() {
       name: 'Hausse des taux'
     },
     crisisFunction: (result: SimulationResult) => {
-      // Simulate interest rate rise affecting debts
-      const newResult = {
-        ...result
-      };
-      // Increase expenses due to higher debt payments
+      const newResult = JSON.parse(JSON.stringify(result));
       for (let i = 1; i < newResult.expenses.length; i++) {
-        const debtImpact = calculateTotalExpenses() * 0.15; // Assume 15% of expenses are debt payments that increase
+        const debtImpact = calculateTotalExpenses() * 0.15;
         newResult.expenses[i] += debtImpact;
         newResult.savings[i] = Math.max(0, newResult.savings[i] - debtImpact);
-        newResult.netWorth[i] = newResult.netWorth[i] - debtImpact;
+        newResult.netWorth[i] -= debtImpact;
       }
       return newResult;
     }
@@ -147,21 +137,15 @@ export function FinancialSimulator() {
       name: 'Achat immobilier'
     },
     crisisFunction: (result: SimulationResult) => {
-      // Simulate home purchase in year 2
-      const newResult = {
-        ...result
-      };
+      const newResult = JSON.parse(JSON.stringify(result));
       const yearIndex = 2;
       if (yearIndex < newResult.expenses.length) {
-        const downPayment = calculateTotalIncome() * 24; // 2 years of income as down payment
-        const monthlyPayment = calculateTotalIncome() * 0.33; // 33% of income as monthly payment
-        // Down payment reduces savings and net worth initially
+        const downPayment = calculateTotalIncome() * 24;
+        const monthlyPayment = calculateTotalIncome() * 0.33;
         newResult.savings[yearIndex] = Math.max(0, newResult.savings[yearIndex] - downPayment);
         newResult.netWorth[yearIndex] -= downPayment;
-        // Monthly payments increase expenses but also build equity
         for (let i = yearIndex; i < newResult.expenses.length; i++) {
           newResult.expenses[i] += monthlyPayment * 12;
-          // But part of payment builds equity (about 30% initially)
           const equityBuilt = monthlyPayment * 12 * 0.3;
           newResult.netWorth[i] += equityBuilt;
         }
@@ -172,41 +156,33 @@ export function FinancialSimulator() {
   // Run simulation with current parameters
   const handleRunSimulation = async () => {
     setIsLoading(true);
+    setSimulationParams(params);
     try {
-      // Apply scenario-specific adjustments
-      let adjustedParams = {
-        ...params
-      };
+      let adjustedParams = { ...params };
       switch (params.simulationType) {
         case 'optimistic':
-          adjustedParams.incomeGrowth = Math.min(10, params.incomeGrowth * 1.5);
-          adjustedParams.investmentReturn = Math.min(12, params.investmentReturn * 1.5);
-          adjustedParams.expenseReduction = Math.min(5, params.expenseReduction * 1.5);
+          adjustedParams.incomeGrowth *= 1.5;
+          adjustedParams.investmentReturn *= 1.5;
+          adjustedParams.expenseReduction *= 1.5;
           break;
         case 'pessimistic':
-          adjustedParams.incomeGrowth = Math.max(0, params.incomeGrowth * 0.5);
-          adjustedParams.investmentReturn = Math.max(1, params.investmentReturn * 0.5);
-          adjustedParams.inflationRate = params.inflationRate * 1.5;
-          adjustedParams.expenseReduction = Math.max(0, params.expenseReduction * 0.5);
+          adjustedParams.incomeGrowth *= 0.5;
+          adjustedParams.investmentReturn *= 0.5;
+          adjustedParams.inflationRate *= 1.5;
+          adjustedParams.expenseReduction *= 0.5;
           break;
         case 'crisis':
-          // Crisis scenarios are handled separately after the base simulation
           break;
       }
-      // Run the simulation
       const result = await runSimulation(adjustedParams);
-      // Apply crisis scenario modifications if needed
+      let finalResult = { ...result, params: adjustedParams };
       if (params.simulationType === 'crisis' && activeScenario) {
         const scenario = scenarios.find(s => s.id === activeScenario);
-        if (scenario && scenario.crisisFunction) {
-          const modifiedResult = scenario.crisisFunction(result);
-          setResults(modifiedResult);
-        } else {
-          setResults(result);
+        if (scenario?.crisisFunction) {
+          finalResult = scenario.crisisFunction(finalResult);
         }
-      } else {
-        setResults(result);
       }
+      setResults(finalResult);
     } catch (error) {
       console.error('Error running simulation:', error);
       toast.error('Erreur lors de la simulation');
@@ -217,10 +193,7 @@ export function FinancialSimulator() {
   // Save current simulation
   const handleSaveSimulation = () => {
     if (results) {
-      setSavedSimulations([...savedSimulations, {
-        ...results,
-        name: params.name
-      }]);
+      setSavedSimulations([...savedSimulations, { ...results, name: params.name }]);
       toast.success('Simulation enregistrée');
     }
   };
@@ -250,8 +223,10 @@ export function FinancialSimulator() {
   };
   // Run initial simulation on component mount
   useEffect(() => {
-    handleRunSimulation();
-  }, []);
+    if (financialData && financialData.incomes.length > 0) {
+      handleRunSimulation();
+    }
+  }, [financialData]);
   return <div className="w-full max-w-6xl mx-auto pb-20">
       <Toaster position="top-right" />
       {/* Header */}
@@ -517,7 +492,7 @@ export function FinancialSimulator() {
                       Croissance totale
                     </h4>
                     <div className="text-2xl font-bold">
-                      {(results.netWorth[results.netWorth.length - 1] / results.netWorth[0] * 100 - 100).toFixed(0)}
+                      {results.netWorth[0] !== 0 ? ((results.netWorth[results.netWorth.length - 1] / results.netWorth[0] - 1) * 100).toFixed(0) : 'N/A'}
                       %
                     </div>
                     <div className="text-xs text-gray-400 mt-1">
@@ -625,11 +600,11 @@ export function FinancialSimulator() {
                     <div className="mt-2 flex items-center">
                       <div className="flex-1 h-2 bg-black/30 rounded-full overflow-hidden">
                         <div className="h-2 bg-gradient-to-r from-indigo-500 to-purple-500" style={{
-                    width: `${Math.min(100, (sim.netWorth?.[sim.netWorth.length - 1] || 0) / (sim.netWorth?.[0] || 1) * 50)}%`
+                    width: `${sim.netWorth?.[0] ? Math.min(100, (sim.netWorth[sim.netWorth.length - 1] / sim.netWorth[0]) * 50) : 0}%`
                   }}></div>
                       </div>
                       <span className="ml-2 text-sm">
-                        {sim.netWorth ? `${Math.round((sim.netWorth[sim.netWorth.length - 1] / sim.netWorth[0] - 1) * 100)}%` : '0%'}
+                        {sim.netWorth?.[0] ? `${Math.round((sim.netWorth[sim.netWorth.length - 1] / sim.netWorth[0] - 1) * 100)}%` : 'N/A'}
                       </span>
                     </div>
                   </div>)}
