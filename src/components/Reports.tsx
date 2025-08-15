@@ -77,7 +77,11 @@ export function Reports() {
     try {
       setExportLoading(true);
       const element = document.getElementById('report-content');
-      if (!element) return;
+      if (!element) {
+        toast.error("Impossible d'exporter le rapport.");
+        setExportLoading(false);
+        return;
+      }
       const dataUrl = await toPng(element, {
         quality: 0.95
       });
@@ -102,8 +106,10 @@ export function Reports() {
       // Save PDF
       pdf.save(`rivela-${selectedReport.title.toLowerCase().replace(/\s+/g, '-')}.pdf`);
       setExportLoading(false);
+      toast.success('Rapport exporté avec succès');
     } catch (error) {
       console.error('Error generating PDF:', error);
+      toast.error("Erreur lors de l'exportation du rapport.");
       setExportLoading(false);
     }
   };

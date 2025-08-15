@@ -2,6 +2,9 @@
 let modelLoaded = false;
 // Simplified categorization without ML model
 export async function categorizeTransaction(description: string, type: 'income' | 'expense' | 'saving' | 'debt', amount: number): Promise<string> {
+  if (!description) {
+    return 'other_' + type;
+  }
   // Normalize text for simple pattern matching
   const normalizedText = description.toLowerCase().trim();
   if (type === 'income') {

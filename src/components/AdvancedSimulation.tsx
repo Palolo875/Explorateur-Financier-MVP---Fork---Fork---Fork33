@@ -1013,9 +1013,15 @@ export function AdvancedSimulation() {
                   Objectifs financiers
                 </h3>
                 <div className="flex items-center">
-                  <span className="text-xs bg-yellow-500/20 text-yellow-300 px-2 py-0.5 rounded-full flex items-center">
-                    <LockIcon className="h-3 w-3 mr-1" />
-                    Premium
+                  <span className="text-xs bg-green-500/20 text-green-300 px-2 py-0.5 rounded-full flex items-center">
+                    <UnlockIcon className="h-3 w-3 mr-1" />
+                    Activé
+                  <span className="text-xs bg-green-500/20 text-green-300 px-2 py-0.5 rounded-full flex items-center">
+                    <UnlockIcon className="h-3 w-3 mr-1" />
+                    Activé
+                  <span className="text-xs bg-green-500/20 text-green-300 px-2 py-0.5 rounded-full flex items-center">
+                    <UnlockIcon className="h-3 w-3 mr-1" />
+                    Activé
                   </span>
                 </div>
               </div>
@@ -1809,11 +1815,11 @@ export function AdvancedSimulation() {
                     <h4 className="text-sm font-medium">
                       Patrimoine à la retraite
                     </h4>
-                    <LockIcon className="h-4 w-4 text-yellow-400" />
+                    <UnlockIcon className="h-4 w-4 text-green-400" />
                   </div>
                   <div className="text-xl font-bold mt-2">650 000€</div>
                   <div className="text-xs text-gray-400 mt-1">
-                    Version Premium requise pour plus de détails
+                    Détails disponibles
                   </div>
                 </div>
                 <div className="bg-black/20 p-3 rounded-lg">
@@ -1821,11 +1827,11 @@ export function AdvancedSimulation() {
                     <h4 className="text-sm font-medium">
                       Revenu mensuel à la retraite
                     </h4>
-                    <LockIcon className="h-4 w-4 text-yellow-400" />
+                    <UnlockIcon className="h-4 w-4 text-green-400" />
                   </div>
                   <div className="text-xl font-bold mt-2">2 700€</div>
                   <div className="text-xs text-gray-400 mt-1">
-                    Version Premium requise pour plus de détails
+                    Détails disponibles
                   </div>
                 </div>
                 <div className="bg-black/20 p-3 rounded-lg">
@@ -1852,8 +1858,8 @@ export function AdvancedSimulation() {
                     Premium.
                   </p>
                 </div>
-                <button className={`ml-auto px-3 py-1.5 rounded-lg bg-gradient-to-r ${themeColors.secondary} hover:opacity-90 text-xs flex-shrink-0`}>
-                  Débloquer
+                <button className={`ml-auto px-3 py-1.5 rounded-lg bg-gradient-to-r ${themeColors.primary} hover:opacity-90 text-xs flex-shrink-0`}>
+                  Explorer
                 </button>
               </div>
             </GlassCard>
@@ -1864,7 +1870,7 @@ export function AdvancedSimulation() {
                   <CalendarIcon className="h-5 w-5 mr-2 text-blue-400" />
                   Événements de vie
                 </h3>
-                <LockIcon className="h-4 w-4 text-yellow-400" />
+                <UnlockIcon className="h-4 w-4 text-green-400" />
               </div>
               <div className="relative py-4">
                 <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-white/10 ml-3.5"></div>
@@ -1922,7 +1928,7 @@ export function AdvancedSimulation() {
                         Ajouter un événement
                       </h4>
                       <p className="text-xs text-gray-400">
-                        Version Premium requise
+                        Ajouter un nouvel événement
                       </p>
                     </div>
                     <div className="text-sm mt-1 md:mt-0">-</div>
@@ -1930,8 +1936,8 @@ export function AdvancedSimulation() {
                 </div>
               </div>
               <div className="mt-4 text-center">
-                <button className={`px-4 py-2 rounded-lg bg-gradient-to-r ${themeColors.secondary} hover:opacity-90 text-sm`}>
-                  Débloquer la planification avancée
+                <button className={`px-4 py-2 rounded-lg bg-gradient-to-r ${themeColors.primary} hover:opacity-90 text-sm`}>
+                  Planification avancée
                 </button>
               </div>
             </GlassCard>
@@ -1945,13 +1951,13 @@ export function AdvancedSimulation() {
                   Paramètres avancés
                 </h3>
                 <div className="flex items-center">
-                  <span className="text-xs bg-yellow-500/20 text-yellow-300 px-2 py-0.5 rounded-full flex items-center">
-                    <LockIcon className="h-3 w-3 mr-1" />
-                    Premium
+                  <span className="text-xs bg-green-500/20 text-green-300 px-2 py-0.5 rounded-full flex items-center">
+                    <UnlockIcon className="h-3 w-3 mr-1" />
+                    Activé
                   </span>
                 </div>
               </div>
-              <div className="space-y-4 opacity-60">
+              <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium mb-1">
                     Inflation (%)
@@ -1959,7 +1965,7 @@ export function AdvancedSimulation() {
                       {inflationRate}%
                     </span>
                   </label>
-                  <input type="range" min="0" max="5" step="0.1" value={inflationRate} onChange={e => setInflationRate(parseFloat(e.target.value))} className="w-full accent-indigo-500" disabled />
+                  <input type="range" min="0" max="5" step="0.1" value={inflationRate} onChange={e => setInflationRate(parseFloat(e.target.value))} className="w-full accent-indigo-500" />
                   <div className="flex justify-between text-xs text-gray-400">
                     <span>0%</span>
                     <span>2.5%</span>
@@ -1973,7 +1979,7 @@ export function AdvancedSimulation() {
                       {investmentReturn}%
                     </span>
                   </label>
-                  <input type="range" min="0" max="12" step="0.5" value={investmentReturn} onChange={e => setInvestmentReturn(parseFloat(e.target.value))} className="w-full accent-indigo-500" disabled />
+                  <input type="range" min="0" max="12" step="0.5" value={investmentReturn} onChange={e => setInvestmentReturn(parseFloat(e.target.value))} className="w-full accent-indigo-500" />
                   <div className="flex justify-between text-xs text-gray-400">
                     <span>0%</span>
                     <span>6%</span>
@@ -1987,7 +1993,7 @@ export function AdvancedSimulation() {
                       3.0%
                     </span>
                   </label>
-                  <input type="range" min="0" max="8" step="0.5" value={3} className="w-full accent-indigo-500" disabled />
+                  <input type="range" min="0" max="8" step="0.5" value={3} className="w-full accent-indigo-500" />
                   <div className="flex justify-between text-xs text-gray-400">
                     <span>0%</span>
                     <span>4%</span>
@@ -2001,7 +2007,7 @@ export function AdvancedSimulation() {
                       {incomeGrowth}%
                     </span>
                   </label>
-                  <input type="range" min="0" max="10" step="0.1" value={incomeGrowth} onChange={e => setIncomeGrowth(parseFloat(e.target.value))} className="w-full accent-indigo-500" disabled />
+                  <input type="range" min="0" max="10" step="0.1" value={incomeGrowth} onChange={e => setIncomeGrowth(parseFloat(e.target.value))} className="w-full accent-indigo-500" />
                   <div className="flex justify-between text-xs text-gray-400">
                     <span>0%</span>
                     <span>5%</span>
@@ -2015,7 +2021,7 @@ export function AdvancedSimulation() {
                       20%
                     </span>
                   </label>
-                  <input type="range" min="0" max="50" step="1" value={20} className="w-full accent-indigo-500" disabled />
+                  <input type="range" min="0" max="50" step="1" value={20} className="w-full accent-indigo-500" />
                   <div className="flex justify-between text-xs text-gray-400">
                     <span>0%</span>
                     <span>25%</span>
@@ -2029,7 +2035,7 @@ export function AdvancedSimulation() {
                       85 ans
                     </span>
                   </label>
-                  <input type="range" min="70" max="100" step="1" value={85} className="w-full accent-indigo-500" disabled />
+                  <input type="range" min="70" max="100" step="1" value={85} className="w-full accent-indigo-500" />
                   <div className="flex justify-between text-xs text-gray-400">
                     <span>70 ans</span>
                     <span>85 ans</span>
@@ -2038,9 +2044,9 @@ export function AdvancedSimulation() {
                 </div>
               </div>
               <div className="mt-6">
-                <button className={`w-full bg-gradient-to-r ${themeColors.secondary} hover:opacity-90 text-white py-2 rounded-lg flex items-center justify-center transition-all duration-300`}>
-                  <UnlockIcon className="mr-2 h-4 w-4" />
-                  Débloquer les paramètres avancés
+                <button className={`w-full bg-gradient-to-r ${themeColors.primary} hover:opacity-90 text-white py-2 rounded-lg flex items-center justify-center transition-all duration-300`}>
+                  <RefreshCwIcon className="mr-2 h-4 w-4" />
+                  Mettre à jour les paramètres
                 </button>
               </div>
             </GlassCard>
@@ -2057,26 +2063,20 @@ export function AdvancedSimulation() {
                   </div>
                   <ChevronRightIcon className="h-4 w-4 text-gray-400" />
                 </button>
-                <div className="w-full p-3 bg-black/20 rounded-lg flex items-center justify-between opacity-60">
+                <button onClick={() => handleExportChart('pdf')} className="w-full p-3 bg-black/20 hover:bg-black/30 rounded-lg flex items-center justify-between">
                   <div className="flex items-center">
                     <DownloadIcon className="h-5 w-5 mr-3 text-purple-400" />
                     <span>Exporter en PDF</span>
                   </div>
-                  <div className="flex items-center">
-                    <LockIcon className="h-3 w-3 mr-1 text-yellow-400" />
-                    <span className="text-xs">Premium</span>
-                  </div>
-                </div>
-                <div className="w-full p-3 bg-black/20 rounded-lg flex items-center justify-between opacity-60">
+                  <ChevronRightIcon className="h-4 w-4 text-gray-400" />
+                </button>
+                <button className="w-full p-3 bg-black/20 hover:bg-black/30 rounded-lg flex items-center justify-between">
                   <div className="flex items-center">
                     <ShareIcon className="h-5 w-5 mr-3 text-blue-400" />
                     <span>Partager par email</span>
                   </div>
-                  <div className="flex items-center">
-                    <LockIcon className="h-3 w-3 mr-1 text-yellow-400" />
-                    <span className="text-xs">Premium</span>
-                  </div>
-                </div>
+                  <ChevronRightIcon className="h-4 w-4 text-gray-400" />
+                </button>
               </div>
             </GlassCard>
             <GlassCard className="p-4" animate>
@@ -2107,22 +2107,18 @@ export function AdvancedSimulation() {
                     </p>
                   </div>
                 </div>
-                <div className="p-3 bg-black/20 rounded-lg opacity-60">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-start">
-                      <BellRingIcon className="h-4 w-4 mt-0.5 mr-2 text-yellow-400" />
-                      <p className="text-sm">
-                        Conseils avancés personnalisés disponibles avec la
-                        version Premium.
-                      </p>
-                    </div>
-                    <LockIcon className="h-4 w-4 text-yellow-400 ml-2 flex-shrink-0" />
+                <div className="p-3 bg-green-900/20 border border-green-500/30 rounded-lg">
+                  <div className="flex items-start">
+                    <BellRingIcon className="h-4 w-4 mt-0.5 mr-2 text-green-400" />
+                    <p className="text-sm">
+                      Tous les conseils personnalisés sont disponibles.
+                    </p>
                   </div>
                 </div>
               </div>
               <div className="mt-4 text-center">
-                <button className={`px-4 py-2 rounded-lg bg-gradient-to-r ${themeColors.secondary} hover:opacity-90 text-sm`}>
-                  Obtenir des conseils avancés
+                <button className={`px-4 py-2 rounded-lg bg-gradient-to-r ${themeColors.primary} hover:opacity-90 text-sm`}>
+                  Voir plus de conseils
                 </button>
               </div>
             </GlassCard>
