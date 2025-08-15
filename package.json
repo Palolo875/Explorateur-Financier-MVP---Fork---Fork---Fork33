@@ -18,13 +18,10 @@
     "react-hot-toast": "^2.4.1",
     "react-countup": "^6.5.3",
     "zustand": "latest",
-    "zustand/middleware": "latest",
     "dayjs": "latest",
     "recharts": "^2.12.7",
     "date-fns": "^4.0.0",
-    "date-fns/locale": "latest",
     "html-to-image": "^1.11.13",
-    "dayjs/locale/fr": "latest",
     "jspdf": "^2.5.1",
     "react-dropzone": "^14.2.3"
   },

@@ -1,4 +1,4 @@
-import React, { useEffect, useState, memo } from 'react';
+import React, { useEffect, useState, memo, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTheme } from '../context/ThemeContext';
@@ -64,11 +64,14 @@ export function RevealScreen() {
     'next-steps': false
   });
   // Calculer les métriques financières avec des vérifications de sécurité
-  const totalIncome = calculateTotalIncome() || 0;
-  const totalExpenses = calculateTotalExpenses() || 0;
-  const balance = totalIncome - totalExpenses;
-  const netWorth = calculateNetWorth() || 0;
-  const savingsRate = totalIncome > 0 ? (totalIncome - totalExpenses) / totalIncome * 100 : 0;
+  const { totalIncome, totalExpenses, netWorth } = useMemo(() => {
+    const income = calculateTotalIncome() || 0;
+    const expenses = calculateTotalExpenses() || 0;
+    const net = calculateNetWorth() || 0;
+    return { totalIncome: income, totalExpenses: expenses, netWorth: net };
+  }, [financialData]);
+  const balance = useMemo(() => totalIncome - totalExpenses, [totalIncome, totalExpenses]);
+  const savingsRate = useMemo(() => totalIncome > 0 ? (totalIncome - totalExpenses) / totalIncome * 100 : 0, [totalIncome, totalExpenses]);
   // Ensure financialData has safe defaults
   const safeFinancialData = {
     incomes: financialData?.incomes || [],

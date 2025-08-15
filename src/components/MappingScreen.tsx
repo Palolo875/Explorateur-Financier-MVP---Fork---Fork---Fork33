@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTheme } from '../context/ThemeContext';
@@ -285,6 +285,12 @@ export function MappingScreen() {
       return sum + (isNaN(value) ? 0 : value);
     }, 0);
   };
+  // Memoized totals
+  const totalIncome = useMemo(() => calculateTotal(localFinancialData.incomes), [localFinancialData.incomes]);
+  const totalExpenses = useMemo(() => calculateTotal(localFinancialData.expenses), [localFinancialData.expenses]);
+  const totalSavings = useMemo(() => calculateTotal(localFinancialData.savings), [localFinancialData.savings]);
+  const totalDebts = useMemo(() => calculateTotal(localFinancialData.debts), [localFinancialData.debts]);
+  const monthlyBalance = useMemo(() => totalIncome - totalExpenses, [totalIncome, totalExpenses]);
   // Handle tab change
   const handleTabChange = (tab: 'incomes' | 'expenses' | 'savings' | 'debts') => {
     setActiveTab(tab);
@@ -776,28 +782,28 @@ export function MappingScreen() {
             <div>
               <div className="text-sm text-gray-400 mb-1">Revenus totaux</div>
               <div className="text-lg font-medium">
-                {calculateTotal(localFinancialData.incomes).toLocaleString('fr-FR')}
+                {totalIncome.toLocaleString('fr-FR')}
                 €<span className="text-xs text-gray-400 ml-1">/ mois</span>
               </div>
             </div>
             <div>
               <div className="text-sm text-gray-400 mb-1">Dépenses totales</div>
               <div className="text-lg font-medium">
-                {calculateTotal(localFinancialData.expenses).toLocaleString('fr-FR')}
+                {totalExpenses.toLocaleString('fr-FR')}
                 €<span className="text-xs text-gray-400 ml-1">/ mois</span>
               </div>
             </div>
             <div>
               <div className="text-sm text-gray-400 mb-1">Épargne totale</div>
               <div className="text-lg font-medium">
-                {calculateTotal(localFinancialData.savings).toLocaleString('fr-FR')}
+                {totalSavings.toLocaleString('fr-FR')}
                 €
               </div>
             </div>
             <div>
               <div className="text-sm text-gray-400 mb-1">Dettes totales</div>
               <div className="text-lg font-medium">
-                {calculateTotal(localFinancialData.debts).toLocaleString('fr-FR')}
+                {totalDebts.toLocaleString('fr-FR')}
                 €
               </div>
             </div>
@@ -808,15 +814,15 @@ export function MappingScreen() {
                 <div className="text-sm text-gray-400 mb-1">
                   Balance mensuelle
                 </div>
-                <div className={`text-lg font-medium ${calculateTotal(localFinancialData.incomes) - calculateTotal(localFinancialData.expenses) >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                  {(calculateTotal(localFinancialData.incomes) - calculateTotal(localFinancialData.expenses)).toLocaleString('fr-FR')}
+                <div className={`text-lg font-medium ${monthlyBalance >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                  {monthlyBalance.toLocaleString('fr-FR')}
                   €
                 </div>
               </div>
               <div className="flex items-center">
-                {calculateTotal(localFinancialData.incomes) - calculateTotal(localFinancialData.expenses) >= 0 ? <ArrowUpIcon className="h-5 w-5 text-green-400 mr-1" /> : <ArrowDownIcon className="h-5 w-5 text-red-400 mr-1" />}
-                <span className={`${calculateTotal(localFinancialData.incomes) - calculateTotal(localFinancialData.expenses) >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                  {Math.abs((calculateTotal(localFinancialData.incomes) - calculateTotal(localFinancialData.expenses)) / calculateTotal(localFinancialData.incomes) * 100 || 0).toFixed(1)}
+                {monthlyBalance >= 0 ? <ArrowUpIcon className="h-5 w-5 text-green-400 mr-1" /> : <ArrowDownIcon className="h-5 w-5 text-red-400 mr-1" />}
+                <span className={`${monthlyBalance >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                  {Math.abs((monthlyBalance / (totalIncome || 1)) * 100).toFixed(1)}
                   %
                 </span>
               </div>
