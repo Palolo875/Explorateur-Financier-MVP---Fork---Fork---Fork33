@@ -41,6 +41,7 @@ export function AdvancedSimulation() {
     runSimulation,
     calculateTotalIncome,
     calculateTotalExpenses,
+    calculateNetWorth: calculateNetWorthFromContext,
     financialData
   } = useFinance();
   // State variables
@@ -441,13 +442,13 @@ export function AdvancedSimulation() {
   // Function to safely calculate net worth
   const calculateNetWorth = () => {
     try {
-      // In a real app, this would calculate based on actual data
-      return financialData?.netWorth || 25000;
+      return calculateNetWorthFromContext();
     } catch (error) {
       console.error('Error calculating net worth:', error);
       return 0;
     }
   };
+
   // Get active simulation data
   const activeSimulationData = simulations.find(sim => sim.name === activeSimulation);
   // Get active scenario data

@@ -7,13 +7,7 @@ import { useFinanceStore } from '../stores/financeStore';
 import { GlassCard } from './ui/GlassCard';
 import { ArrowRightIcon, SearchIcon, HeartIcon, BrainIcon, LayoutDashboardIcon, RefreshCwIcon, TrendingUpIcon, AlertCircleIcon, ThumbsUpIcon, ThumbsDownIcon, SmileIcon, FrownIcon, MehIcon, CheckIcon, XIcon, HistoryIcon, TagIcon, MessageCircleIcon, RefreshCcwIcon, LightbulbIcon, ChevronRightIcon } from 'lucide-react';
 import { toast, Toaster } from 'react-hot-toast';
-// Définition des types pour les suggestions de questions
-interface QuestionSuggestion {
-  id: string;
-  text: string;
-  category: 'budget' | 'investment' | 'saving' | 'debt' | 'general';
-  icon: React.ReactNode;
-}
+import { QuestionSuggestion } from '../types/finance';
 // Type pour l'historique des questions avec contexte
 interface QuestionHistoryItem {
   id: string;

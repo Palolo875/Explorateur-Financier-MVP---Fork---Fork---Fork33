@@ -1,3 +1,4 @@
+import type React from 'react';
 export interface FinancialItem {
   id?: string;
   value: number | string;
@@ -25,4 +26,29 @@ export interface FinancialInsight {
   impact: 'low' | 'medium' | 'high';
   action: string;
   potentialSavings?: number;
+}
+export interface SimulationParams {
+  name: string;
+  incomeGrowth: number;
+  expenseReduction: number;
+  savingsRate: number;
+  investmentReturn: number;
+  inflationRate: number;
+  years: number;
+}
+
+export interface SimulationResult {
+  years: number[];
+  netWorth: number[];
+  savings: number[];
+  income: number[];
+  expenses: number[];
+  name?: string;
+}
+
+export interface QuestionSuggestion {
+  id: string;
+  text: string;
+  category: 'budget' | 'investment' | 'saving' | 'debt' | 'general';
+  icon: React.ReactNode;
 }
