@@ -24,8 +24,6 @@
     "html-to-image": "^1.11.13",
     "jspdf": "^2.5.1",
     "react-dropzone": "^14.2.3",
-    "date-fns/locale": "latest",
-    "dayjs/locale/fr": "latest",
     "zustand/middleware": "latest"
   },
   "devDependencies": {
