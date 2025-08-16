@@ -148,7 +148,7 @@ export function MappingScreen() {
   } = useFinanceStore();
 
   // === VALIDATION ET INITIALISATION SÉCURISÉE DES DONNÉES ===
-  
+
   // Vérifier et corriger la structure des données financières
   React.useEffect(() => {
     if (!financialData) {
@@ -166,8 +166,9 @@ export function MappingScreen() {
     // Vérifier que toutes les propriétés requises existent et sont des tableaux
     const requiredProperties = ['incomes', 'expenses', 'savings', 'debts'] as const;
     let needsUpdate = false;
-    const safeData = { ...financialData };
-
+    const safeData = {
+      ...financialData
+    };
     requiredProperties.forEach(prop => {
       if (!Array.isArray(financialData[prop])) {
         console.warn(`financialData.${prop} n'est pas un tableau, correction en cours`);
@@ -181,7 +182,6 @@ export function MappingScreen() {
       safeData.investments = [];
       needsUpdate = true;
     }
-
     if (needsUpdate) {
       console.log('Mise à jour de la structure des données financières:', safeData);
       setFinancialData(safeData);
@@ -338,10 +338,14 @@ export function MappingScreen() {
   const handleAddItem = () => {
     try {
       console.log('=== DÉBUT AJOUT ÉLÉMENT ===');
-      console.log('Données reçues:', { newItem, activeTab, financialData });
+      console.log('Données reçues:', {
+        newItem,
+        activeTab,
+        financialData
+      });
 
       // === VALIDATION STRICTE ===
-      
+
       // 1. Validation du montant
       if (!newItem.value || newItem.value === '' || newItem.value === '0') {
         console.error('Montant manquant ou invalide:', newItem.value);
@@ -352,14 +356,13 @@ export function MappingScreen() {
       // 2. Conversion et validation numérique
       let numericValue: number;
       try {
-        const cleanValue = typeof newItem.value === 'string' 
-          ? newItem.value.replace(',', '.').trim() 
-          : String(newItem.value);
-        
+        const cleanValue = typeof newItem.value === 'string' ? newItem.value.replace(',', '.').trim() : String(newItem.value);
         numericValue = parseFloat(cleanValue);
-        
         if (isNaN(numericValue) || !isFinite(numericValue) || numericValue <= 0) {
-          console.error('Conversion numérique échouée:', { original: newItem.value, converted: numericValue });
+          console.error('Conversion numérique échouée:', {
+            original: newItem.value,
+            converted: numericValue
+          });
           toast.error('Le montant doit être un nombre positif valide');
           return;
         }
@@ -409,7 +412,6 @@ export function MappingScreen() {
         frequency: frequency as FinancialItem['frequency'],
         isRecurring: Boolean(newItem.isRecurring)
       };
-
       console.log('Nouvel élément créé:', newFinancialItem);
 
       // === VALIDATION DES DONNÉES EXISTANTES ===
@@ -419,7 +421,6 @@ export function MappingScreen() {
         toast.error('Erreur: données financières non initialisées');
         return;
       }
-
       if (typeof financialData !== 'object') {
         console.error('financialData n\'est pas un objet:', typeof financialData);
         toast.error('Erreur: structure de données incorrecte');
@@ -443,7 +444,6 @@ export function MappingScreen() {
       // === MISE À JOUR SÉCURISÉE ===
 
       console.log('Tentative de mise à jour des données...');
-      
       setFinancialData(currentData => {
         // Validation supplémentaire des données courantes
         if (!currentData || typeof currentData !== 'object') {
@@ -465,10 +465,8 @@ export function MappingScreen() {
           ...safeCurrentData,
           [activeTab]: [...safeCurrentData[activeTab], newFinancialItem]
         };
-
         console.log('Nouvelles données après ajout:', updatedData);
         console.log(`Nombre d'éléments dans ${activeTab}:`, updatedData[activeTab].length);
-
         return updatedData;
       });
 
@@ -499,23 +497,19 @@ export function MappingScreen() {
       } catch (audioError) {
         console.log('Erreur audio (non critique):', audioError);
       }
-
       console.log('=== AJOUT ÉLÉMENT TERMINÉ AVEC SUCCÈS ===');
-
     } catch (error) {
       // === GESTION D'ERREUR DÉTAILLÉE ===
-      
+
       console.error('=== ERREUR LORS DE L\'AJOUT ===');
       console.error('Type d\'erreur:', typeof error);
       console.error('Erreur complète:', error);
-      
       if (error instanceof Error) {
         console.error('Message d\'erreur:', error.message);
         console.error('Stack trace:', error.stack);
-        
+
         // Messages d'erreur spécifiques selon le type d'erreur
         let errorMessage = 'Une erreur est survenue lors de l\'ajout';
-        
         if (error.message.includes('Cannot read propert')) {
           errorMessage = 'Erreur de structure des données. Veuillez recharger la page.';
         } else if (error.message.includes('setFinancialData')) {
@@ -527,7 +521,6 @@ export function MappingScreen() {
         } else if (error.message.length > 0) {
           errorMessage = `Erreur: ${error.message}`;
         }
-        
         toast.error(errorMessage);
       } else {
         console.error('Erreur non-standard:', error);
@@ -1021,26 +1014,10 @@ export function MappingScreen() {
                   </div>
                   <div className="flex justify-end">
                     <button onClick={handleAddItem} disabled={
-                      // Validation complète pour activation du bouton
-                      !newItem.value || 
-                      newItem.value === '' || 
-                      newItem.value === '0' || 
-                      !newItem.category || 
-                      newItem.category === '' || 
-                      isNaN(parseFloat(newItem.value.toString())) || 
-                      parseFloat(newItem.value.toString()) <= 0
-                    } className={`flex items-center px-4 py-2 rounded-lg transition-colors ${
-                      // Conditions pour déterminer l'apparence du bouton
-                      !newItem.value || 
-                      newItem.value === '' || 
-                      newItem.value === '0' || 
-                      !newItem.category || 
-                      newItem.category === '' || 
-                      isNaN(parseFloat(newItem.value.toString())) || 
-                      parseFloat(newItem.value.toString()) <= 0
-                        ? 'bg-gray-600 cursor-not-allowed opacity-50' 
-                        : 'bg-green-600 hover:bg-green-700 focus:ring-2 focus:ring-green-500 focus:outline-none'
-                    }`}>
+                // Validation complète pour activation du bouton
+                !newItem.value || newItem.value === '' || newItem.value === '0' || !newItem.category || newItem.category === '' || isNaN(parseFloat(newItem.value.toString())) || parseFloat(newItem.value.toString()) <= 0} className={`flex items-center px-4 py-2 rounded-lg transition-colors ${
+                // Conditions pour déterminer l'apparence du bouton
+                !newItem.value || newItem.value === '' || newItem.value === '0' || !newItem.category || newItem.category === '' || isNaN(parseFloat(newItem.value.toString())) || parseFloat(newItem.value.toString()) <= 0 ? 'bg-gray-600 cursor-not-allowed opacity-50' : 'bg-green-600 hover:bg-green-700 focus:ring-2 focus:ring-green-500 focus:outline-none'}`}>
                       <CheckIcon className="h-5 w-5 mr-2" />
                       Ajouter
                     </button>
