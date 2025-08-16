@@ -295,37 +295,96 @@ export function MappingScreen() {
   // Handle adding a new item
   const handleAddItem = () => {
     try {
-      // Validation simple
-      if (!newItem.value || newItem.value === '') {
-        toast.error('Veuillez entrer un montant');
+      console.log('Début de handleAddItem:', { newItem, activeTab, financialData });
+      
+      // Validation renforcée
+      if (!newItem.value || newItem.value === '' || newItem.value === '0') {
+        toast.error('Veuillez entrer un montant valide');
         return;
       }
-      // Conversion simplifiée de la valeur en nombre
-      const numericValue = Number(newItem.value);
-      if (isNaN(numericValue) || numericValue <= 0) {
-        toast.error('Le montant doit être un nombre positif');
+
+      // Conversion sécurisée de la valeur en nombre
+      let numericValue: number;
+      try {
+        numericValue = typeof newItem.value === 'string' 
+          ? parseFloat(newItem.value.replace(',', '.')) 
+          : Number(newItem.value);
+        
+        if (isNaN(numericValue) || !isFinite(numericValue) || numericValue <= 0) {
+          toast.error('Le montant doit être un nombre positif valide');
+          return;
+        }
+      } catch (conversionError) {
+        console.error('Erreur de conversion du montant:', conversionError);
+        toast.error('Montant invalide');
         return;
       }
-      // Catégorie par défaut si non spécifiée
-      const category = newItem.category || `other_${activeTab.slice(0, -1)}`;
-      // Créer un nouvel élément simple
-      const newFinancialItem = {
-        id: `item-${Date.now()}`,
+
+      // Validation de la catégorie
+      if (!newItem.category || newItem.category.trim() === '') {
+        toast.error('Veuillez sélectionner une catégorie');
+        return;
+      }
+
+      // Validation de la fréquence
+      const validFrequencies = ['daily', 'weekly', 'monthly', 'quarterly', 'yearly', 'once'];
+      const frequency = newItem.frequency || 'monthly';
+      if (!validFrequencies.includes(frequency)) {
+        toast.error('Fréquence invalide');
+        return;
+      }
+
+      // Générer un ID unique plus robuste
+      const timestamp = Date.now();
+      const random = Math.random().toString(36).substr(2, 9);
+      const uniqueId = `${activeTab}-${timestamp}-${random}`;
+
+      // Créer un nouvel élément avec validation complète
+      const newFinancialItem: FinancialItem = {
+        id: uniqueId,
         value: numericValue,
-        category: category,
-        description: newItem.description || '',
-        frequency: newItem.frequency || 'monthly',
+        category: newItem.category.trim(),
+        description: newItem.description?.trim() || '',
+        frequency: frequency,
         isRecurring: Boolean(newItem.isRecurring)
       };
+
       console.log('Nouvel élément créé:', newFinancialItem);
-      // Mise à jour directe sans manipulation complexe
+
+      // Vérifier que financialData existe et est valide
+      if (!financialData || typeof financialData !== 'object') {
+        console.error('financialData invalide:', financialData);
+        toast.error('Erreur de données financières');
+        return;
+      }
+
+      // Vérifier que l'onglet actif existe
+      if (!financialData.hasOwnProperty(activeTab)) {
+        console.error(`L'onglet ${activeTab} n'existe pas dans financialData`);
+        toast.error('Erreur de catégorie financière');
+        return;
+      }
+
+      // Mise à jour sécurisée de l'état
       setFinancialData(prevData => {
-        // Version simplifiée de la mise à jour
-        return {
+        // Créer une copie complète des données existantes
+        const updatedData = {
           ...prevData,
-          [activeTab]: [...(prevData[activeTab] || []), newFinancialItem]
+          incomes: prevData.incomes || [],
+          expenses: prevData.expenses || [],
+          savings: prevData.savings || [],
+          debts: prevData.debts || [],
+          investments: prevData.investments || []
         };
+
+        // Ajouter le nouvel élément à la catégorie appropriée
+        const currentItems = updatedData[activeTab] || [];
+        updatedData[activeTab] = [...currentItems, newFinancialItem];
+
+        console.log('Données mises à jour:', updatedData);
+        return updatedData;
       });
+
       // Réinitialiser le formulaire
       setNewItem({
         value: '',
@@ -334,18 +393,41 @@ export function MappingScreen() {
         frequency: 'monthly',
         isRecurring: true
       });
+
       // Fermer le formulaire
       setIsAdding(false);
-      // Confirmation
+
+      // Confirmation de succès
       toast.success('Élément ajouté avec succès');
+      
+      // Son de succès
+      try {
+        const audio = new Audio(SOUNDS.success);
+        audio.volume = 0.3;
+        audio.play().catch(e => console.log('Son désactivé:', e));
+      } catch (audioError) {
+        console.log('Erreur lors de la lecture du son:', audioError);
+      }
+
     } catch (error) {
-      // Log détaillé de l'erreur
+      // Gestion d'erreur améliorée
       console.error('Erreur dans handleAddItem:', error);
+      
       if (error instanceof Error) {
         console.error("Message d'erreur:", error.message);
         console.error('Stack trace:', error.stack);
+        
+        // Messages d'erreur plus spécifiques
+        if (error.message.includes('Cannot read property')) {
+          toast.error('Erreur de structure des données. Veuillez recharger la page.');
+        } else if (error.message.includes('setFinancialData')) {
+          toast.error('Erreur de sauvegarde. Veuillez réessayer.');
+        } else {
+          toast.error(`Erreur: ${error.message}`);
+        }
+      } else {
+        toast.error("Erreur inconnue lors de l'ajout de l'élément");
       }
-      toast.error("Erreur lors de l'ajout de l'élément");
     }
   };
   // Handle editing an item
@@ -779,10 +861,19 @@ export function MappingScreen() {
                       Veuillez entrer un montant positif valide
                     </div>}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <select value={newItem.category} onChange={e => setNewItem({
-                  ...newItem,
-                  category: e.target.value
-                })} className="bg-black/30 border border-white/10 rounded-lg py-2 px-3 text-white">
+                    <select 
+                      value={newItem.category} 
+                      onChange={e => setNewItem({
+                        ...newItem,
+                        category: e.target.value
+                      })} 
+                      className={`bg-black/30 border rounded-lg py-2 px-3 text-white ${
+                        !newItem.category || newItem.category === '' 
+                        ? 'border-red-500/50 focus:border-red-500' 
+                        : 'border-white/10 focus:border-indigo-500'
+                      }`}
+                      required
+                    >
                       <option value="">Sélectionner une catégorie</option>
                       {getCategories().map(cat => <option key={cat.value} value={cat.value}>
                           {cat.label}
@@ -797,6 +888,9 @@ export function MappingScreen() {
                         </option>)}
                     </select>
                   </div>
+                  {(!newItem.category || newItem.category === '') && <div className="text-red-400 text-sm mt-1">
+                      Veuillez sélectionner une catégorie
+                    </div>}
                   <input type="text" value={newItem.description} onChange={e => setNewItem({
                 ...newItem,
                 description: e.target.value
@@ -823,7 +917,29 @@ export function MappingScreen() {
                     </div>
                   </div>
                   <div className="flex justify-end">
-                    <button onClick={handleAddItem} disabled={!newItem.value || newItem.value === ''} className={`flex items-center px-4 py-2 rounded-lg ${!newItem.value || newItem.value === '' ? 'bg-gray-600 cursor-not-allowed opacity-50' : 'bg-green-600 hover:bg-green-700'}`}>
+                    <button 
+                      onClick={handleAddItem} 
+                      disabled={
+                        !newItem.value || 
+                        newItem.value === '' || 
+                        newItem.value === '0' ||
+                        !newItem.category ||
+                        newItem.category === '' ||
+                        parseFloat(newItem.value.toString()) <= 0 ||
+                        isNaN(parseFloat(newItem.value.toString()))
+                      } 
+                      className={`flex items-center px-4 py-2 rounded-lg transition-colors ${
+                        (!newItem.value || 
+                         newItem.value === '' || 
+                         newItem.value === '0' ||
+                         !newItem.category ||
+                         newItem.category === '' ||
+                         parseFloat(newItem.value.toString()) <= 0 ||
+                         isNaN(parseFloat(newItem.value.toString()))) 
+                        ? 'bg-gray-600 cursor-not-allowed opacity-50' 
+                        : 'bg-green-600 hover:bg-green-700'
+                      }`}
+                    >
                       <CheckIcon className="h-5 w-5 mr-2" />
                       Ajouter
                     </button>
