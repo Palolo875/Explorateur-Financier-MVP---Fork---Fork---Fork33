@@ -50,7 +50,7 @@ export function FinanceProvider({
     financialData: storeFinancialData,
     setFinancialData: storeSetFinancialData
   } = useFinanceStore();
-  
+
   // Ensure we always have valid financial data by merging with defaults
   const safeFinancialData = {
     ...defaultFinancialData,

@@ -295,8 +295,12 @@ export function MappingScreen() {
   // Handle adding a new item
   const handleAddItem = () => {
     try {
-      console.log('Début de handleAddItem:', { newItem, activeTab, financialData });
-      
+      console.log('Début de handleAddItem:', {
+        newItem,
+        activeTab,
+        financialData
+      });
+
       // Validation renforcée
       if (!newItem.value || newItem.value === '' || newItem.value === '0') {
         toast.error('Veuillez entrer un montant valide');
@@ -306,10 +310,7 @@ export function MappingScreen() {
       // Conversion sécurisée de la valeur en nombre
       let numericValue: number;
       try {
-        numericValue = typeof newItem.value === 'string' 
-          ? parseFloat(newItem.value.replace(',', '.')) 
-          : Number(newItem.value);
-        
+        numericValue = typeof newItem.value === 'string' ? parseFloat(newItem.value.replace(',', '.')) : Number(newItem.value);
         if (isNaN(numericValue) || !isFinite(numericValue) || numericValue <= 0) {
           toast.error('Le montant doit être un nombre positif valide');
           return;
@@ -348,7 +349,6 @@ export function MappingScreen() {
         frequency: frequency,
         isRecurring: Boolean(newItem.isRecurring)
       };
-
       console.log('Nouvel élément créé:', newFinancialItem);
 
       // Vérifier que financialData existe et est valide
@@ -380,7 +380,6 @@ export function MappingScreen() {
         // Ajouter le nouvel élément à la catégorie appropriée
         const currentItems = updatedData[activeTab] || [];
         updatedData[activeTab] = [...currentItems, newFinancialItem];
-
         console.log('Données mises à jour:', updatedData);
         return updatedData;
       });
@@ -399,7 +398,7 @@ export function MappingScreen() {
 
       // Confirmation de succès
       toast.success('Élément ajouté avec succès');
-      
+
       // Son de succès
       try {
         const audio = new Audio(SOUNDS.success);
@@ -408,15 +407,13 @@ export function MappingScreen() {
       } catch (audioError) {
         console.log('Erreur lors de la lecture du son:', audioError);
       }
-
     } catch (error) {
       // Gestion d'erreur améliorée
       console.error('Erreur dans handleAddItem:', error);
-      
       if (error instanceof Error) {
         console.error("Message d'erreur:", error.message);
         console.error('Stack trace:', error.stack);
-        
+
         // Messages d'erreur plus spécifiques
         if (error.message.includes('Cannot read property')) {
           toast.error('Erreur de structure des données. Veuillez recharger la page.');
@@ -861,19 +858,10 @@ export function MappingScreen() {
                       Veuillez entrer un montant positif valide
                     </div>}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <select 
-                      value={newItem.category} 
-                      onChange={e => setNewItem({
-                        ...newItem,
-                        category: e.target.value
-                      })} 
-                      className={`bg-black/30 border rounded-lg py-2 px-3 text-white ${
-                        !newItem.category || newItem.category === '' 
-                        ? 'border-red-500/50 focus:border-red-500' 
-                        : 'border-white/10 focus:border-indigo-500'
-                      }`}
-                      required
-                    >
+                    <select value={newItem.category} onChange={e => setNewItem({
+                  ...newItem,
+                  category: e.target.value
+                })} className={`bg-black/30 border rounded-lg py-2 px-3 text-white ${!newItem.category || newItem.category === '' ? 'border-red-500/50 focus:border-red-500' : 'border-white/10 focus:border-indigo-500'}`} required>
                       <option value="">Sélectionner une catégorie</option>
                       {getCategories().map(cat => <option key={cat.value} value={cat.value}>
                           {cat.label}
@@ -917,29 +905,7 @@ export function MappingScreen() {
                     </div>
                   </div>
                   <div className="flex justify-end">
-                    <button 
-                      onClick={handleAddItem} 
-                      disabled={
-                        !newItem.value || 
-                        newItem.value === '' || 
-                        newItem.value === '0' ||
-                        !newItem.category ||
-                        newItem.category === '' ||
-                        parseFloat(newItem.value.toString()) <= 0 ||
-                        isNaN(parseFloat(newItem.value.toString()))
-                      } 
-                      className={`flex items-center px-4 py-2 rounded-lg transition-colors ${
-                        (!newItem.value || 
-                         newItem.value === '' || 
-                         newItem.value === '0' ||
-                         !newItem.category ||
-                         newItem.category === '' ||
-                         parseFloat(newItem.value.toString()) <= 0 ||
-                         isNaN(parseFloat(newItem.value.toString()))) 
-                        ? 'bg-gray-600 cursor-not-allowed opacity-50' 
-                        : 'bg-green-600 hover:bg-green-700'
-                      }`}
-                    >
+                    <button onClick={handleAddItem} disabled={!newItem.value || newItem.value === '' || newItem.value === '0' || !newItem.category || newItem.category === '' || parseFloat(newItem.value.toString()) <= 0 || isNaN(parseFloat(newItem.value.toString()))} className={`flex items-center px-4 py-2 rounded-lg transition-colors ${!newItem.value || newItem.value === '' || newItem.value === '0' || !newItem.category || newItem.category === '' || parseFloat(newItem.value.toString()) <= 0 || isNaN(parseFloat(newItem.value.toString())) ? 'bg-gray-600 cursor-not-allowed opacity-50' : 'bg-green-600 hover:bg-green-700'}`}>
                       <CheckIcon className="h-5 w-5 mr-2" />
                       Ajouter
                     </button>

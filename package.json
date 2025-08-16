@@ -24,7 +24,8 @@
     "html-to-image": "^1.11.13",
     "jspdf": "^2.5.1",
     "react-dropzone": "^14.2.3",
-    "zustand": "latest"
+    "date-fns/locale": "latest",
+    "zustand/middleware": "latest"
   },
   "devDependencies": {
     "@types/node": "^20.11.18",
