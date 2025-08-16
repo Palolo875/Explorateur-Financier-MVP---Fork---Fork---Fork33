@@ -296,7 +296,7 @@ export function MappingScreen() {
   const handleAddItem = async () => {
     try {
       console.log('Début de handleAddItem avec:', newItem);
-      
+
       // Validation de base - vérifier que la valeur n'est pas vide
       if (!newItem.value || newItem.value === '') {
         toast.error('Veuillez entrer un montant');
@@ -307,12 +307,8 @@ export function MappingScreen() {
       let numericValue;
       try {
         // Nettoyer la valeur d'entrée (supprimer les espaces et caractères non numériques sauf . et ,)
-        const cleanValue = typeof newItem.value === 'string' 
-          ? newItem.value.replace(/[^\d,.-]/g, '').replace(',', '.') 
-          : newItem.value.toString();
-        
+        const cleanValue = typeof newItem.value === 'string' ? newItem.value.replace(/[^\d,.-]/g, '').replace(',', '.') : newItem.value.toString();
         numericValue = parseFloat(cleanValue);
-        
         if (isNaN(numericValue) || numericValue <= 0) {
           toast.error('Le montant doit être un nombre positif valide');
           return;
@@ -335,16 +331,12 @@ export function MappingScreen() {
       // Vérifier et assigner une catégorie si nécessaire
       if (!itemToSave.category) {
         console.log('Pas de catégorie définie, tentative de catégorisation automatique');
-        
+
         // Essayer la catégorisation automatique si une description est disponible
         if (itemToSave.description && itemToSave.description.trim() !== '') {
           try {
             console.log('Tentative de catégorisation pour:', itemToSave.description);
-            const suggestedCategory = await categorizeTransaction(
-              itemToSave.description, 
-              activeTab.slice(0, -1) as 'income' | 'expense' | 'saving' | 'debt', 
-              numericValue
-            );
+            const suggestedCategory = await categorizeTransaction(itemToSave.description, activeTab.slice(0, -1) as 'income' | 'expense' | 'saving' | 'debt', numericValue);
             console.log('Catégorie suggérée:', suggestedCategory);
             if (suggestedCategory) {
               itemToSave.category = suggestedCategory;
@@ -354,7 +346,7 @@ export function MappingScreen() {
             // Continuer sans catégorisation automatique
           }
         }
-        
+
         // Assigner une catégorie par défaut si toujours pas définie
         if (!itemToSave.category) {
           console.log("Attribution d'une catégorie par défaut");
@@ -387,7 +379,6 @@ export function MappingScreen() {
         ...itemToSave,
         id: uniqueId
       };
-
       console.log('Élément final prêt à être ajouté:', itemWithId);
 
       // Vérifier que financialData existe et est un objet valide
@@ -406,16 +397,15 @@ export function MappingScreen() {
 
       // Créer une copie complète des données financières actuelles
       const currentData = JSON.parse(JSON.stringify(financialData));
-      
+
       // Ajouter le nouvel élément à la liste appropriée
       const updatedItems = [...(currentData[activeTab] || []), itemWithId];
-      
+
       // Créer un nouvel objet de données financières
       const updatedData = {
         ...currentData,
         [activeTab]: updatedItems
       };
-
       console.log('Données financières mises à jour:', updatedData);
 
       // Mettre à jour l'état avec les nouvelles données
@@ -451,16 +441,14 @@ export function MappingScreen() {
       } catch (audioError) {
         console.log('Erreur lors de la lecture du son:', audioError);
       }
-
     } catch (error) {
       // Gestion des erreurs globale
       console.error("Erreur critique lors de l'ajout d'un élément:", error);
-      
+
       // Message d'erreur plus informatif pour l'utilisateur
       if (error instanceof Error) {
         console.error('Détails de l\'erreur:', error.message, error.stack);
       }
-      
       toast.error("Une erreur est survenue lors de l'ajout de l'élément. Veuillez réessayer.");
     }
   };
@@ -885,30 +873,15 @@ export function MappingScreen() {
                 </h3>
                 <div className="space-y-3">
                   <div className="flex items-center">
-                    <input 
-                      type="number" 
-                      value={newItem.value} 
-                      onChange={e => setNewItem({
-                        ...newItem,
-                        value: e.target.value
-                      })} 
-                      className={`bg-black/30 border rounded-lg py-2 px-3 w-full text-white mr-2 ${
-                        !newItem.value || newItem.value === '' || parseFloat(newItem.value.toString()) <= 0
-                          ? 'border-red-500/50 focus:border-red-500' 
-                          : 'border-white/10 focus:border-indigo-500'
-                      }`}
-                      placeholder="Montant" 
-                      min="0.01"
-                      step="0.01"
-                      required
-                    />
+                    <input type="number" value={newItem.value} onChange={e => setNewItem({
+                  ...newItem,
+                  value: e.target.value
+                })} className={`bg-black/30 border rounded-lg py-2 px-3 w-full text-white mr-2 ${!newItem.value || newItem.value === '' || parseFloat(newItem.value.toString()) <= 0 ? 'border-red-500/50 focus:border-red-500' : 'border-white/10 focus:border-indigo-500'}`} placeholder="Montant" min="0.01" step="0.01" required />
                     <span className="text-lg">€</span>
                   </div>
-                  {(!newItem.value || newItem.value === '' || parseFloat(newItem.value.toString()) <= 0) && (
-                    <div className="text-red-400 text-sm mt-1">
+                  {(!newItem.value || newItem.value === '' || parseFloat(newItem.value.toString()) <= 0) && <div className="text-red-400 text-sm mt-1">
                       Veuillez entrer un montant positif valide
-                    </div>
-                  )}
+                    </div>}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <select value={newItem.category} onChange={e => setNewItem({
                   ...newItem,
@@ -954,15 +927,7 @@ export function MappingScreen() {
                     </div>
                   </div>
                   <div className="flex justify-end">
-                    <button 
-                      onClick={handleAddItem} 
-                      disabled={!newItem.value || newItem.value === ''}
-                      className={`flex items-center px-4 py-2 rounded-lg ${
-                        !newItem.value || newItem.value === ''
-                          ? 'bg-gray-600 cursor-not-allowed opacity-50' 
-                          : 'bg-green-600 hover:bg-green-700'
-                      }`}
-                    >
+                    <button onClick={handleAddItem} disabled={!newItem.value || newItem.value === ''} className={`flex items-center px-4 py-2 rounded-lg ${!newItem.value || newItem.value === '' ? 'bg-gray-600 cursor-not-allowed opacity-50' : 'bg-green-600 hover:bg-green-700'}`}>
                       <CheckIcon className="h-5 w-5 mr-2" />
                       Ajouter
                     </button>
@@ -1032,8 +997,7 @@ export function MappingScreen() {
       </div>
 
       {/* Debug section - can be removed in production */}
-      {process.env.NODE_ENV === 'development' && (
-        <GlassCard className="mt-6 p-4" animate>
+      {process.env.NODE_ENV === 'development' && <GlassCard className="mt-6 p-4" animate>
           <h3 className="text-sm font-medium mb-2">Debug Info</h3>
           <div className="text-xs text-gray-400 space-y-1">
             <div>Active Tab: {activeTab}</div>
@@ -1042,7 +1006,6 @@ export function MappingScreen() {
             <div>Is Adding: {isAdding ? 'true' : 'false'}</div>
             <div>Financial Data Valid: {financialData ? 'true' : 'false'}</div>
           </div>
-        </GlassCard>
-      )}
+        </GlassCard>}
     </div>;
 }
