@@ -23,9 +23,7 @@
     "date-fns": "^4.0.0",
     "html-to-image": "^1.11.13",
     "jspdf": "^2.5.1",
-    "react-dropzone": "^14.2.3",
-    "date-fns/locale": "latest",
-    "zustand/middleware": "latest"
+    "react-dropzone": "^14.2.3"
   },
   "devDependencies": {
     "@types/node": "^20.11.18",

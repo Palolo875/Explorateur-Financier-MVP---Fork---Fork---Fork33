@@ -11,6 +11,7 @@ import { GlassCard } from './ui/GlassCard';
 import { DataImportModal } from './data/DataImportModal';
 import { RealTimeVisualization } from './data/RealTimeVisualization';
 import { categorizeTransaction, improveModelWithFeedback } from '../utils/aiCategorization';
+import { DebugMappingTest } from './DebugMappingTest';
 // Import des sons pour les micro-interactions
 // Note: Dans une implémentation réelle, ces URLs devraient pointer vers des fichiers hébergés
 const SOUNDS = {
@@ -150,7 +151,7 @@ export function MappingScreen() {
   // === VALIDATION ET INITIALISATION SÉCURISÉE DES DONNÉES ===
   
   // Vérifier et corriger la structure des données financières
-  React.useEffect(() => {
+  useEffect(() => {
     if (!financialData) {
       console.warn('financialData est null, initialisation avec des valeurs par défaut');
       setFinancialData({
@@ -334,8 +335,55 @@ export function MappingScreen() {
     setEditingItemId(null);
     setEditingItem(null);
   };
+  // Handle adding a new item (version simplifiée pour test)
+  const handleAddItemSimple = () => {
+    console.log('🧪 TEST SIMPLE - DÉBUT');
+    
+    try {
+      // Test basique avec données en dur
+      const testItem = {
+        id: `test_${Date.now()}`,
+        value: 1000,
+        category: 'salary',
+        description: 'Test simple',
+        frequency: 'monthly' as const,
+        isRecurring: true
+      };
+
+      console.log('Élément de test:', testItem);
+      console.log('financialData avant:', financialData);
+
+      // Essayer d'ajouter directement
+      const newData = {
+        incomes: [...(financialData?.incomes || []), testItem],
+        expenses: financialData?.expenses || [],
+        savings: financialData?.savings || [],
+        debts: financialData?.debts || [],
+        investments: financialData?.investments || []
+      };
+
+      console.log('Nouvelles données:', newData);
+      setFinancialData(newData);
+      
+      toast.success('Test simple réussi !');
+      console.log('🧪 TEST SIMPLE - SUCCÈS');
+
+    } catch (error) {
+      console.error('🧪 TEST SIMPLE - ERREUR:', error);
+      toast.error('Test simple échoué');
+    }
+  };
+
   // Handle adding a new item
   const handleAddItem = () => {
+    console.log('🚀 HANDLE ADD ITEM APPELÉ');
+    console.log('🔍 État initial:', {
+      newItem,
+      activeTab,
+      financialData: financialData ? 'EXISTE' : 'NULL',
+      setFinancialData: typeof setFinancialData
+    });
+
     try {
       console.log('=== DÉBUT AJOUT ÉLÉMENT ===');
       console.log('Données reçues:', { newItem, activeTab, financialData });
@@ -691,6 +739,8 @@ export function MappingScreen() {
   };
   return <div className="w-full max-w-4xl mx-auto pb-20">
       <Toaster position="top-right" />
+      {/* Composant de debug temporaire */}
+      {process.env.NODE_ENV === 'development' && <DebugMappingTest />}
       {/* Header */}
       <motion.div className="flex justify-center mb-8" initial={{
       opacity: 0,
@@ -930,7 +980,15 @@ export function MappingScreen() {
             </div>}
         </div>
         {/* Add button */}
-        <div className="flex justify-center mb-4">
+        <div className="flex justify-center mb-4 space-x-2">
+          {process.env.NODE_ENV === 'development' && (
+            <button 
+              onClick={handleAddItemSimple} 
+              className="flex items-center justify-center px-4 py-2 rounded-lg bg-yellow-600 hover:bg-yellow-700 transition-colors"
+            >
+              🧪 Test Simple
+            </button>
+          )}
           <button onClick={() => setIsAdding(!isAdding)} className={`flex items-center justify-center px-4 py-2 rounded-lg ${isAdding ? 'bg-red-600 hover:bg-red-700' : 'bg-indigo-600 hover:bg-indigo-700'} transition-colors`}>
             {isAdding ? <>
                 <XIcon className="h-5 w-5 mr-2" />
@@ -1020,7 +1078,10 @@ export function MappingScreen() {
                     </div>
                   </div>
                   <div className="flex justify-end">
-                    <button onClick={handleAddItem} disabled={
+                                         <button onClick={() => {
+                       console.log('🔘 BOUTON AJOUTER CLIQUÉ');
+                       handleAddItem();
+                     }} disabled={
                       // Validation complète pour activation du bouton
                       !newItem.value || 
                       newItem.value === '' || 
