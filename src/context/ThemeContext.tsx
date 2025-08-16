@@ -107,13 +107,13 @@ const getThemeColors = (theme: ThemeType, colorScheme: ColorScheme): ThemeColors
         primary: scheme.primaryGradient,
         secondary: scheme.secondaryGradient,
         accent: scheme.accentColor,
-        background: 'bg-gray-50',
-        cardBackground: 'bg-white/80',
-        text: 'text-gray-800',
+        background: 'bg-gradient-to-br from-gray-50 to-white',
+        cardBackground: 'bg-white/90',
+        text: 'text-gray-900',
         textSecondary: 'text-gray-600',
         chartColors,
-        glassOpacity: 'bg-black/5',
-        buttonStyle: 'bg-gradient-to-r'
+        glassOpacity: 'bg-white/20',
+        buttonStyle: 'bg-gradient-to-r shadow-lg'
       };
     case 'cosmic':
       return {
@@ -134,10 +134,10 @@ const getThemeColors = (theme: ThemeType, colorScheme: ColorScheme): ThemeColors
         primary: scheme.primaryGradient,
         secondary: scheme.secondaryGradient,
         accent: scheme.accentColor,
-        background: 'bg-gray-900',
-        cardBackground: 'bg-gray-800/50',
+        background: 'bg-gradient-to-br from-gray-900 via-black to-gray-800',
+        cardBackground: 'bg-white/10',
         text: 'text-white',
-        textSecondary: 'text-gray-400',
+        textSecondary: 'text-gray-300',
         chartColors,
         glassOpacity: 'bg-white/5',
         buttonStyle: 'bg-gradient-to-r'
@@ -169,23 +169,29 @@ export const ThemeProvider: React.FC<{
     const root = document.documentElement;
     if (newTheme === 'light') {
       root.style.setProperty('--background-start', '#f9fafb');
-      root.style.setProperty('--background-end', '#f3f4f6');
-      root.style.setProperty('--glass-bg', 'rgba(0, 0, 0, 0.03)');
-      root.style.setProperty('--glass-border', 'rgba(0, 0, 0, 0.08)');
+      root.style.setProperty('--background-end', '#ffffff');
+      root.style.setProperty('--glass-bg', 'rgba(255, 255, 255, 0.25)');
+      root.style.setProperty('--glass-border', 'rgba(255, 255, 255, 0.18)');
       root.style.setProperty('--glass-shadow', 'rgba(0, 0, 0, 0.1)');
+      root.style.setProperty('--card-shadow', '0 8px 32px 0 rgba(0, 0, 0, 0.1)');
+      root.style.setProperty('--backdrop-blur', '16px');
     } else if (newTheme === 'cosmic') {
       root.style.setProperty('--background-start', '#000000');
       root.style.setProperty('--background-end', '#0f0f1a');
       root.style.setProperty('--glass-bg', 'rgba(255, 255, 255, 0.08)');
       root.style.setProperty('--glass-border', 'rgba(255, 255, 255, 0.15)');
       root.style.setProperty('--glass-shadow', 'rgba(0, 0, 0, 0.3)');
+      root.style.setProperty('--card-shadow', '0 8px 32px 0 rgba(0, 0, 0, 0.3)');
+      root.style.setProperty('--backdrop-blur', '12px');
     } else {
-      // Default dark theme
+      // Dark theme - Glass morphism style
       root.style.setProperty('--background-start', '#1a1a2e');
-      root.style.setProperty('--background-end', '#16213e');
-      root.style.setProperty('--glass-bg', 'rgba(255, 255, 255, 0.05)');
-      root.style.setProperty('--glass-border', 'rgba(255, 255, 255, 0.1)');
-      root.style.setProperty('--glass-shadow', 'rgba(0, 0, 0, 0.2)');
+      root.style.setProperty('--background-end', '#000000');
+      root.style.setProperty('--glass-bg', 'rgba(255, 255, 255, 0.1)');
+      root.style.setProperty('--glass-border', 'rgba(255, 255, 255, 0.2)');
+      root.style.setProperty('--glass-shadow', 'rgba(0, 0, 0, 0.25)');
+      root.style.setProperty('--card-shadow', '0 8px 32px 0 rgba(0, 0, 0, 0.25)');
+      root.style.setProperty('--backdrop-blur', '16px');
     }
   };
   // Set color scheme and save to local storage
