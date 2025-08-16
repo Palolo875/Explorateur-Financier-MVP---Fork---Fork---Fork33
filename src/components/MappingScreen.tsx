@@ -146,6 +146,9 @@ export function MappingScreen() {
   const {
     setHasCompletedOnboarding
   } = useFinanceStore();
+
+  // Récupérer aussi la fonction de sauvegarde du store comme backup
+  const { setFinancialData: storeSetFinancialData } = useFinanceStore();
   // State for current tab
   const [activeTab, setActiveTab] = useState<'incomes' | 'expenses' | 'savings' | 'debts'>('incomes');
   // State for adding new items
@@ -420,12 +423,48 @@ export function MappingScreen() {
 
       // Mettre à jour l'état avec les nouvelles données
       try {
-        setFinancialData(updatedData);
-        console.log('Mise à jour des données financières réussie');
+        // Vérifier que setFinancialData est une fonction
+        if (typeof setFinancialData !== 'function') {
+          console.error('setFinancialData n\'est pas une fonction:', typeof setFinancialData);
+          console.log('Tentative de sauvegarde avec le store directement...');
+          
+          // Essayer avec le store directement
+          if (typeof storeSetFinancialData === 'function') {
+            console.log('Utilisation du store pour la sauvegarde:', updatedData);
+            storeSetFinancialData(updatedData);
+            console.log('Sauvegarde via le store réussie');
+          } else {
+            toast.error('Erreur de configuration - aucune fonction de sauvegarde disponible');
+            return;
+          }
+        } else {
+          console.log('Appel de setFinancialData avec:', updatedData);
+          setFinancialData(updatedData);
+          console.log('Mise à jour des données financières réussie');
+        }
+        
+        // Vérifier que les données ont été sauvegardées
+        setTimeout(() => {
+          console.log('Vérification des données après sauvegarde:', financialData);
+        }, 100);
+        
       } catch (setDataError) {
         console.error('Erreur lors de la mise à jour des données:', setDataError);
-        toast.error('Erreur lors de la sauvegarde des données');
-        return;
+        
+        // Essayer avec la fonction de sauvegarde du store en cas d'erreur
+        try {
+          console.log('Tentative de sauvegarde de secours avec le store...');
+          if (typeof storeSetFinancialData === 'function') {
+            storeSetFinancialData(updatedData);
+            console.log('Sauvegarde de secours réussie');
+          } else {
+            throw new Error('Aucune fonction de sauvegarde de secours disponible');
+          }
+        } catch (backupError) {
+          console.error('Erreur lors de la sauvegarde de secours:', backupError);
+          toast.error('Erreur lors de la sauvegarde des données');
+          return;
+        }
       }
 
       // Réinitialiser le formulaire
@@ -1041,6 +1080,38 @@ export function MappingScreen() {
             <div>New Item Value: {newItem.value || 'empty'}</div>
             <div>Is Adding: {isAdding ? 'true' : 'false'}</div>
             <div>Financial Data Valid: {financialData ? 'true' : 'false'}</div>
+            <div>setFinancialData type: {typeof setFinancialData}</div>
+            <div>storeSetFinancialData type: {typeof storeSetFinancialData}</div>
+            <div>Context setFinancialData available: {setFinancialData ? 'yes' : 'no'}</div>
+            <div>Store setFinancialData available: {storeSetFinancialData ? 'yes' : 'no'}</div>
+          </div>
+          <div className="mt-3">
+            <button 
+              onClick={() => {
+                console.log('Test de sauvegarde déclenché');
+                const testData = {
+                  ...financialData,
+                  test: Date.now()
+                };
+                try {
+                  if (typeof setFinancialData === 'function') {
+                    setFinancialData(testData);
+                    toast.success('Test de sauvegarde contexte réussi');
+                  } else if (typeof storeSetFinancialData === 'function') {
+                    storeSetFinancialData(testData);
+                    toast.success('Test de sauvegarde store réussi');
+                  } else {
+                    toast.error('Aucune fonction de sauvegarde disponible');
+                  }
+                } catch (error) {
+                  console.error('Erreur test sauvegarde:', error);
+                  toast.error('Erreur lors du test de sauvegarde');
+                }
+              }}
+              className="bg-blue-600 hover:bg-blue-700 px-2 py-1 rounded text-xs"
+            >
+              Test Sauvegarde
+            </button>
           </div>
         </GlassCard>
       )}
