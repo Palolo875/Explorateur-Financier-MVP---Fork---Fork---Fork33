@@ -50,10 +50,34 @@ export function FinanceProvider({
     financialData: storeFinancialData,
     setFinancialData: storeSetFinancialData
   } = useFinanceStore();
+  
   // Ensure we always have valid financial data by merging with defaults
   const safeFinancialData = {
     ...defaultFinancialData,
-    ...storeFinancialData
+    ...storeFinancialData,
+    // Ensure all arrays exist
+    incomes: Array.isArray(storeFinancialData?.incomes) ? storeFinancialData.incomes : [],
+    expenses: Array.isArray(storeFinancialData?.expenses) ? storeFinancialData.expenses : [],
+    savings: Array.isArray(storeFinancialData?.savings) ? storeFinancialData.savings : [],
+    debts: Array.isArray(storeFinancialData?.debts) ? storeFinancialData.debts : [],
+    investments: Array.isArray(storeFinancialData?.investments) ? storeFinancialData.investments : []
+  };
+
+  // Enhanced setFinancialData with error handling
+  const setFinancialDataSafe = (data: FinancialData | ((prev: FinancialData) => FinancialData)) => {
+    try {
+      if (typeof data === 'function') {
+        const newData = data(safeFinancialData);
+        console.log('Updating financial data:', newData);
+        storeSetFinancialData(newData);
+      } else {
+        console.log('Setting financial data:', data);
+        storeSetFinancialData(data);
+      }
+    } catch (error) {
+      console.error('Error updating financial data:', error);
+      throw new Error('Failed to update financial data: ' + (error instanceof Error ? error.message : 'Unknown error'));
+    }
   };
   // Function to calculate total income
   const calculateTotalIncome = () => {
@@ -276,7 +300,7 @@ export function FinanceProvider({
     userQuestion,
     setUserQuestion,
     financialData: safeFinancialData,
-    setFinancialData: storeSetFinancialData,
+    setFinancialData: setFinancialDataSafe,
     emotionalContext,
     setEmotionalContext,
     generateInsights,
