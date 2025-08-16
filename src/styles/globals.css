@@ -3,7 +3,7 @@
 @tailwind components;
 @tailwind utilities;
 :root {
-  /* Base theme colors */
+  /* Base theme colors - will be overridden by theme-specific variables */
   --background-start: #1a1a2e;
   --background-end: #16213e;
   --accent-gradient-start: #4361ee;
@@ -18,14 +18,66 @@
   /* Typography */
   --font-family: 'Inter', sans-serif;
 }
+/* Theme-specific variables */
+.light {
+  --background-start: #f9fafb;
+  --background-end: #f3f4f6;
+  --glass-bg: rgba(0, 0, 0, 0.03);
+  --glass-border: rgba(0, 0, 0, 0.08);
+  --glass-shadow: rgba(0, 0, 0, 0.1);
+  color: #1f2937;
+}
+.dark {
+  --background-start: #1a1a2e;
+  --background-end: #16213e;
+  --glass-bg: rgba(255, 255, 255, 0.05);
+  --glass-border: rgba(255, 255, 255, 0.1);
+  --glass-shadow: rgba(0, 0, 0, 0.2);
+  color: #ffffff;
+}
+.cosmic {
+  --background-start: #000000;
+  --background-end: #0f0f1a;
+  --glass-bg: rgba(255, 255, 255, 0.08);
+  --glass-border: rgba(255, 255, 255, 0.15);
+  --glass-shadow: rgba(0, 0, 0, 0.3);
+  color: #ffffff;
+}
 body {
   font-family: var(--font-family);
   background: linear-gradient(135deg, var(--background-start), var(--background-end));
-  color: #ffffff;
   min-height: 100vh;
   margin: 0;
   padding: 0;
   line-height: 1.6;
+}
+/* Light theme specific styles */
+.light .glass-card {
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.05);
+}
+.light input, .light select, .light textarea {
+  background: rgba(0, 0, 0, 0.03);
+  border-color: rgba(0, 0, 0, 0.1);
+  color: #1f2937;
+}
+/* Cosmic theme specific styles */
+.cosmic .glass-card {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3), 0 0 15px 0 rgba(67, 97, 238, 0.2);
+}
+.cosmic .btn-primary, .cosmic .btn-secondary {
+  box-shadow: 0 0 15px 0 rgba(67, 97, 238, 0.4);
+}
+.cosmic input, .cosmic select, .cosmic textarea {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.15);
+}
+/* Shadow glow effect for cosmic theme */
+.shadow-glow {
+  box-shadow: 0 0 15px 0 rgba(67, 97, 238, 0.4);
 }
 /* Improved scrollbars */
 ::-webkit-scrollbar {
@@ -42,6 +94,16 @@ body {
 }
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 255, 255, 0.3);
+}
+/* Light theme scrollbar */
+.light::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.05);
+}
+.light::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.2);
+}
+.light::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.3);
 }
 /* Glass blur effect */
 .glass-blur {
@@ -89,6 +151,18 @@ body {
   background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
   background-size: 1000px 100%;
   animation: shimmer 2s infinite;
+}
+/* Cosmic theme enhanced animations */
+.cosmic .animate-pulse-glow {
+  animation: pulse-glow 1.5s infinite;
+}
+.cosmic .glass-card::before {
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.1),
+    transparent
+  );
 }
 /* Utility classes for gradients */
 .bg-gradient-primary {
@@ -178,9 +252,17 @@ body {
   background: transparent;
   border: 1px solid rgba(255, 255, 255, 0.2);
 }
+.light .btn-outline {
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  color: #1f2937;
+}
 .btn:hover {
   opacity: 0.9;
   transform: translateY(-1px);
+}
+/* Light theme button hover effect */
+.light .btn:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 /* Input styles */
 .input {
@@ -196,6 +278,11 @@ body {
   border-color: var(--accent-gradient-start);
   box-shadow: 0 0 0 2px rgba(67, 97, 238, 0.2);
 }
+.light .input {
+  background: rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  color: #1f2937;
+}
 /* Enhanced chart styles */
 .recharts-tooltip-wrapper {
   border-radius: 8px;
@@ -206,6 +293,11 @@ body {
   border: 1px solid rgba(255, 255, 255, 0.1) !important;
   border-radius: 8px !important;
   padding: 0.5rem !important;
+}
+.light .recharts-default-tooltip {
+  background-color: rgba(255, 255, 255, 0.95) !important;
+  border: 1px solid rgba(0, 0, 0, 0.1) !important;
+  color: #1f2937 !important;
 }
 .recharts-legend-item {
   margin-right: 1rem !important;
@@ -221,6 +313,9 @@ body {
   transform: translateY(-4px);
   box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2);
 }
+.light .hover-lift:hover {
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
+}
 /* Loading spinner */
 .spinner {
   border: 3px solid rgba(255, 255, 255, 0.1);
@@ -229,6 +324,10 @@ body {
   width: 24px;
   height: 24px;
   animation: spin 1s linear infinite;
+}
+.light .spinner {
+  border: 3px solid rgba(0, 0, 0, 0.1);
+  border-top: 3px solid var(--accent-gradient-start);
 }
 @keyframes spin {
   0% { transform: rotate(0deg); }
@@ -242,12 +341,21 @@ body {
   padding: 0.75rem;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
+.light .custom-tooltip {
+  background-color: rgba(255, 255, 255, 0.95);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  color: #1f2937;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
 /* Form elements */
 input[type="range"] {
   height: 5px;
   border-radius: 5px;
   appearance: none;
   background: rgba(255, 255, 255, 0.1);
+}
+.light input[type="range"] {
+  background: rgba(0, 0, 0, 0.1);
 }
 input[type="range"]::-webkit-slider-thumb {
   appearance: none;
@@ -260,6 +368,9 @@ input[type="range"]::-webkit-slider-thumb {
 input[type="checkbox"] {
   border-radius: 4px;
   border: 1px solid rgba(255, 255, 255, 0.2);
+}
+.light input[type="checkbox"] {
+  border: 1px solid rgba(0, 0, 0, 0.2);
 }
 /* Responsive adjustments */
 @media (max-width: 640px) {

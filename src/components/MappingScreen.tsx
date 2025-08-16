@@ -293,131 +293,39 @@ export function MappingScreen() {
     setEditingItem(null);
   };
   // Handle adding a new item
-  const handleAddItem = async () => {
+  const handleAddItem = () => {
     try {
-      console.log('Début de handleAddItem avec:', newItem);
-
-      // Validation de base - vérifier que la valeur n'est pas vide
+      // Validation simple
       if (!newItem.value || newItem.value === '') {
         toast.error('Veuillez entrer un montant');
         return;
       }
-
-      // Conversion de la valeur en nombre avec gestion d'erreur explicite
-      let numericValue;
-      try {
-        // Nettoyer la valeur d'entrée (supprimer les espaces et caractères non numériques sauf . et ,)
-        const cleanValue = typeof newItem.value === 'string' ? newItem.value.replace(/[^\d,.-]/g, '').replace(',', '.') : newItem.value.toString();
-        numericValue = parseFloat(cleanValue);
-        if (isNaN(numericValue) || numericValue <= 0) {
-          toast.error('Le montant doit être un nombre positif valide');
-          return;
-        }
-      } catch (error) {
-        console.error('Erreur lors de la conversion du montant:', error);
-        toast.error('Le montant est invalide');
+      // Conversion simplifiée de la valeur en nombre
+      const numericValue = Number(newItem.value);
+      if (isNaN(numericValue) || numericValue <= 0) {
+        toast.error('Le montant doit être un nombre positif');
         return;
       }
-
-      // Créer une copie complète et sécurisée de l'élément
-      const itemToSave = {
+      // Catégorie par défaut si non spécifiée
+      const category = newItem.category || `other_${activeTab.slice(0, -1)}`;
+      // Créer un nouvel élément simple
+      const newFinancialItem = {
+        id: `item-${Date.now()}`,
         value: numericValue,
-        category: newItem.category || '',
+        category: category,
         description: newItem.description || '',
         frequency: newItem.frequency || 'monthly',
-        isRecurring: newItem.isRecurring !== undefined ? newItem.isRecurring : true
+        isRecurring: Boolean(newItem.isRecurring)
       };
-
-      // Vérifier et assigner une catégorie si nécessaire
-      if (!itemToSave.category) {
-        console.log('Pas de catégorie définie, tentative de catégorisation automatique');
-
-        // Essayer la catégorisation automatique si une description est disponible
-        if (itemToSave.description && itemToSave.description.trim() !== '') {
-          try {
-            console.log('Tentative de catégorisation pour:', itemToSave.description);
-            const suggestedCategory = await categorizeTransaction(itemToSave.description, activeTab.slice(0, -1) as 'income' | 'expense' | 'saving' | 'debt', numericValue);
-            console.log('Catégorie suggérée:', suggestedCategory);
-            if (suggestedCategory) {
-              itemToSave.category = suggestedCategory;
-            }
-          } catch (categorizationError) {
-            console.error('Échec de la catégorisation automatique:', categorizationError);
-            // Continuer sans catégorisation automatique
-          }
-        }
-
-        // Assigner une catégorie par défaut si toujours pas définie
-        if (!itemToSave.category) {
-          console.log("Attribution d'une catégorie par défaut");
-          switch (activeTab) {
-            case 'incomes':
-              itemToSave.category = 'other_income';
-              break;
-            case 'expenses':
-              itemToSave.category = 'other_expense';
-              break;
-            case 'savings':
-              itemToSave.category = 'savings';
-              break;
-            case 'debts':
-              itemToSave.category = 'other_debt';
-              break;
-            default:
-              itemToSave.category = 'other';
-          }
-        }
-      }
-
-      // Générer un ID unique avec format simple et robuste
-      const timestamp = Date.now();
-      const randomPart = Math.floor(Math.random() * 10000);
-      const uniqueId = `${activeTab}-${timestamp}-${randomPart}`;
-
-      // Créer l'élément final avec toutes les propriétés nécessaires
-      const itemWithId = {
-        ...itemToSave,
-        id: uniqueId
-      };
-      console.log('Élément final prêt à être ajouté:', itemWithId);
-
-      // Vérifier que financialData existe et est un objet valide
-      if (!financialData || typeof financialData !== 'object') {
-        console.error('financialData est invalide:', financialData);
-        toast.error('Erreur de configuration des données financières');
-        return;
-      }
-
-      // Vérifier que la propriété activeTab existe dans financialData
-      if (!financialData[activeTab] || !Array.isArray(financialData[activeTab])) {
-        console.error(`financialData[${activeTab}] n'est pas un tableau valide:`, financialData[activeTab]);
-        // Initialiser le tableau s'il n'existe pas
-        financialData[activeTab] = [];
-      }
-
-      // Créer une copie complète des données financières actuelles
-      const currentData = JSON.parse(JSON.stringify(financialData));
-
-      // Ajouter le nouvel élément à la liste appropriée
-      const updatedItems = [...(currentData[activeTab] || []), itemWithId];
-
-      // Créer un nouvel objet de données financières
-      const updatedData = {
-        ...currentData,
-        [activeTab]: updatedItems
-      };
-      console.log('Données financières mises à jour:', updatedData);
-
-      // Mettre à jour l'état avec les nouvelles données
-      try {
-        setFinancialData(updatedData);
-        console.log('Mise à jour des données financières réussie');
-      } catch (setDataError) {
-        console.error('Erreur lors de la mise à jour des données:', setDataError);
-        toast.error('Erreur lors de la sauvegarde des données');
-        return;
-      }
-
+      console.log('Nouvel élément créé:', newFinancialItem);
+      // Mise à jour directe sans manipulation complexe
+      setFinancialData(prevData => {
+        // Version simplifiée de la mise à jour
+        return {
+          ...prevData,
+          [activeTab]: [...(prevData[activeTab] || []), newFinancialItem]
+        };
+      });
       // Réinitialiser le formulaire
       setNewItem({
         value: '',
@@ -426,30 +334,18 @@ export function MappingScreen() {
         frequency: 'monthly',
         isRecurring: true
       });
-
-      // Fermer le formulaire d'ajout
+      // Fermer le formulaire
       setIsAdding(false);
-
-      // Afficher une confirmation
+      // Confirmation
       toast.success('Élément ajouté avec succès');
-
-      // Jouer le son de succès
-      try {
-        const audio = new Audio(SOUNDS.success);
-        audio.volume = 0.5;
-        audio.play().catch(e => console.log('Son désactivé:', e));
-      } catch (audioError) {
-        console.log('Erreur lors de la lecture du son:', audioError);
-      }
     } catch (error) {
-      // Gestion des erreurs globale
-      console.error("Erreur critique lors de l'ajout d'un élément:", error);
-
-      // Message d'erreur plus informatif pour l'utilisateur
+      // Log détaillé de l'erreur
+      console.error('Erreur dans handleAddItem:', error);
       if (error instanceof Error) {
-        console.error('Détails de l\'erreur:', error.message, error.stack);
+        console.error("Message d'erreur:", error.message);
+        console.error('Stack trace:', error.stack);
       }
-      toast.error("Une erreur est survenue lors de l'ajout de l'élément. Veuillez réessayer.");
+      toast.error("Erreur lors de l'ajout de l'élément");
     }
   };
   // Handle editing an item

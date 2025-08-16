@@ -14,7 +14,7 @@ export function Settings() {
   } = useTheme();
   // State for settings
   const [language, setLanguage] = useState('fr');
-  const [darkMode, setDarkMode] = useState(theme === 'dark');
+  const [darkMode, setDarkMode] = useState(theme === 'dark' || theme === 'cosmic');
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [dataAutoSave, setDataAutoSave] = useState(true);
   const [currencyFormat, setCurrencyFormat] = useState('EUR');
@@ -23,9 +23,9 @@ export function Settings() {
   const [privacyMode, setPrivacyMode] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
   // Handle theme change
-  const handleThemeChange = (isDark: boolean) => {
-    setDarkMode(isDark);
-    setTheme(isDark ? 'dark' : 'light');
+  const handleThemeChange = (themeType: 'light' | 'dark' | 'cosmic') => {
+    setTheme(themeType);
+    setDarkMode(themeType === 'dark' || themeType === 'cosmic');
   };
   // Handle save settings
   const handleSaveSettings = () => {
@@ -256,14 +256,21 @@ export function Settings() {
             <div className="space-y-4">
               <div>
                 <label className="block text-sm mb-2">Thème</label>
-                <div className="grid grid-cols-2 gap-3">
-                  <button onClick={() => handleThemeChange(false)} className={`p-3 rounded-lg flex flex-col items-center ${!darkMode ? 'bg-gradient-to-r from-indigo-500 to-purple-600 text-white' : 'bg-black/20 hover:bg-black/30'}`}>
+                <div className="grid grid-cols-3 gap-2">
+                  <button onClick={() => handleThemeChange('light')} className={`p-3 rounded-lg flex flex-col items-center ${theme === 'light' ? 'bg-gradient-to-r from-indigo-500 to-purple-600 text-white' : 'bg-black/20 hover:bg-black/30'}`}>
                     <SunIcon className="h-6 w-6 mb-1" />
-                    <span className="text-sm">Clair</span>
+                    <span className="text-xs">Clair</span>
                   </button>
-                  <button onClick={() => handleThemeChange(true)} className={`p-3 rounded-lg flex flex-col items-center ${darkMode ? 'bg-gradient-to-r from-indigo-500 to-purple-600 text-white' : 'bg-black/20 hover:bg-black/30'}`}>
+                  <button onClick={() => handleThemeChange('dark')} className={`p-3 rounded-lg flex flex-col items-center ${theme === 'dark' ? 'bg-gradient-to-r from-indigo-500 to-purple-600 text-white' : 'bg-black/20 hover:bg-black/30'}`}>
                     <MoonIcon className="h-6 w-6 mb-1" />
-                    <span className="text-sm">Sombre</span>
+                    <span className="text-xs">Sombre</span>
+                  </button>
+                  <button onClick={() => handleThemeChange('cosmic')} className={`p-3 rounded-lg flex flex-col items-center ${theme === 'cosmic' ? 'bg-gradient-to-r from-indigo-500 to-purple-600 text-white' : 'bg-black/20 hover:bg-black/30'}`}>
+                    <svg className="h-6 w-6 mb-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <circle cx="12" cy="12" r="5" />
+                      <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" />
+                    </svg>
+                    <span className="text-xs">Cosmique</span>
                   </button>
                 </div>
               </div>
