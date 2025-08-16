@@ -296,17 +296,25 @@ export function MappingScreen() {
   const handleAddItem = async () => {
     try {
       console.log('Début de handleAddItem avec:', newItem);
-      // Validation de base
-      if (!newItem.value) {
+      
+      // Validation de base - vérifier que la valeur n'est pas vide
+      if (!newItem.value || newItem.value === '') {
         toast.error('Veuillez entrer un montant');
         return;
       }
+
       // Conversion de la valeur en nombre avec gestion d'erreur explicite
       let numericValue;
       try {
-        numericValue = typeof newItem.value === 'string' ? parseFloat(newItem.value) : Number(newItem.value);
-        if (isNaN(numericValue)) {
-          toast.error('Le montant doit être un nombre valide');
+        // Nettoyer la valeur d'entrée (supprimer les espaces et caractères non numériques sauf . et ,)
+        const cleanValue = typeof newItem.value === 'string' 
+          ? newItem.value.replace(/[^\d,.-]/g, '').replace(',', '.') 
+          : newItem.value.toString();
+        
+        numericValue = parseFloat(cleanValue);
+        
+        if (isNaN(numericValue) || numericValue <= 0) {
+          toast.error('Le montant doit être un nombre positif valide');
           return;
         }
       } catch (error) {
@@ -314,19 +322,29 @@ export function MappingScreen() {
         toast.error('Le montant est invalide');
         return;
       }
+
       // Créer une copie complète et sécurisée de l'élément
-      const itemToSave = JSON.parse(JSON.stringify({
-        ...newItem,
-        value: numericValue
-      }));
+      const itemToSave = {
+        value: numericValue,
+        category: newItem.category || '',
+        description: newItem.description || '',
+        frequency: newItem.frequency || 'monthly',
+        isRecurring: newItem.isRecurring !== undefined ? newItem.isRecurring : true
+      };
+
       // Vérifier et assigner une catégorie si nécessaire
       if (!itemToSave.category) {
         console.log('Pas de catégorie définie, tentative de catégorisation automatique');
+        
         // Essayer la catégorisation automatique si une description est disponible
-        if (itemToSave.description) {
+        if (itemToSave.description && itemToSave.description.trim() !== '') {
           try {
             console.log('Tentative de catégorisation pour:', itemToSave.description);
-            const suggestedCategory = await categorizeTransaction(itemToSave.description, activeTab.slice(0, -1) as 'income' | 'expense' | 'saving' | 'debt', numericValue);
+            const suggestedCategory = await categorizeTransaction(
+              itemToSave.description, 
+              activeTab.slice(0, -1) as 'income' | 'expense' | 'saving' | 'debt', 
+              numericValue
+            );
             console.log('Catégorie suggérée:', suggestedCategory);
             if (suggestedCategory) {
               itemToSave.category = suggestedCategory;
@@ -336,6 +354,7 @@ export function MappingScreen() {
             // Continuer sans catégorisation automatique
           }
         }
+        
         // Assigner une catégorie par défaut si toujours pas définie
         if (!itemToSave.category) {
           console.log("Attribution d'une catégorie par défaut");
@@ -352,31 +371,63 @@ export function MappingScreen() {
             case 'debts':
               itemToSave.category = 'other_debt';
               break;
+            default:
+              itemToSave.category = 'other';
           }
         }
       }
+
       // Générer un ID unique avec format simple et robuste
       const timestamp = Date.now();
       const randomPart = Math.floor(Math.random() * 10000);
       const uniqueId = `${activeTab}-${timestamp}-${randomPart}`;
+
       // Créer l'élément final avec toutes les propriétés nécessaires
       const itemWithId = {
         ...itemToSave,
         id: uniqueId
       };
+
       console.log('Élément final prêt à être ajouté:', itemWithId);
+
+      // Vérifier que financialData existe et est un objet valide
+      if (!financialData || typeof financialData !== 'object') {
+        console.error('financialData est invalide:', financialData);
+        toast.error('Erreur de configuration des données financières');
+        return;
+      }
+
+      // Vérifier que la propriété activeTab existe dans financialData
+      if (!financialData[activeTab] || !Array.isArray(financialData[activeTab])) {
+        console.error(`financialData[${activeTab}] n'est pas un tableau valide:`, financialData[activeTab]);
+        // Initialiser le tableau s'il n'existe pas
+        financialData[activeTab] = [];
+      }
+
       // Créer une copie complète des données financières actuelles
       const currentData = JSON.parse(JSON.stringify(financialData));
+      
       // Ajouter le nouvel élément à la liste appropriée
-      const updatedItems = [...currentData[activeTab], itemWithId];
+      const updatedItems = [...(currentData[activeTab] || []), itemWithId];
+      
       // Créer un nouvel objet de données financières
       const updatedData = {
         ...currentData,
         [activeTab]: updatedItems
       };
+
       console.log('Données financières mises à jour:', updatedData);
+
       // Mettre à jour l'état avec les nouvelles données
-      setFinancialData(updatedData);
+      try {
+        setFinancialData(updatedData);
+        console.log('Mise à jour des données financières réussie');
+      } catch (setDataError) {
+        console.error('Erreur lors de la mise à jour des données:', setDataError);
+        toast.error('Erreur lors de la sauvegarde des données');
+        return;
+      }
+
       // Réinitialiser le formulaire
       setNewItem({
         value: '',
@@ -385,10 +436,13 @@ export function MappingScreen() {
         frequency: 'monthly',
         isRecurring: true
       });
+
       // Fermer le formulaire d'ajout
       setIsAdding(false);
+
       // Afficher une confirmation
       toast.success('Élément ajouté avec succès');
+
       // Jouer le son de succès
       try {
         const audio = new Audio(SOUNDS.success);
@@ -397,10 +451,17 @@ export function MappingScreen() {
       } catch (audioError) {
         console.log('Erreur lors de la lecture du son:', audioError);
       }
+
     } catch (error) {
       // Gestion des erreurs globale
       console.error("Erreur critique lors de l'ajout d'un élément:", error);
-      toast.error("Une erreur est survenue lors de l'ajout de l'élément");
+      
+      // Message d'erreur plus informatif pour l'utilisateur
+      if (error instanceof Error) {
+        console.error('Détails de l\'erreur:', error.message, error.stack);
+      }
+      
+      toast.error("Une erreur est survenue lors de l'ajout de l'élément. Veuillez réessayer.");
     }
   };
   // Handle editing an item
@@ -824,12 +885,30 @@ export function MappingScreen() {
                 </h3>
                 <div className="space-y-3">
                   <div className="flex items-center">
-                    <input type="number" value={newItem.value} onChange={e => setNewItem({
-                  ...newItem,
-                  value: e.target.value
-                })} className="bg-black/30 border border-white/10 rounded-lg py-2 px-3 w-full text-white mr-2" placeholder="Montant" />
+                    <input 
+                      type="number" 
+                      value={newItem.value} 
+                      onChange={e => setNewItem({
+                        ...newItem,
+                        value: e.target.value
+                      })} 
+                      className={`bg-black/30 border rounded-lg py-2 px-3 w-full text-white mr-2 ${
+                        !newItem.value || newItem.value === '' || parseFloat(newItem.value.toString()) <= 0
+                          ? 'border-red-500/50 focus:border-red-500' 
+                          : 'border-white/10 focus:border-indigo-500'
+                      }`}
+                      placeholder="Montant" 
+                      min="0.01"
+                      step="0.01"
+                      required
+                    />
                     <span className="text-lg">€</span>
                   </div>
+                  {(!newItem.value || newItem.value === '' || parseFloat(newItem.value.toString()) <= 0) && (
+                    <div className="text-red-400 text-sm mt-1">
+                      Veuillez entrer un montant positif valide
+                    </div>
+                  )}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <select value={newItem.category} onChange={e => setNewItem({
                   ...newItem,
@@ -875,7 +954,15 @@ export function MappingScreen() {
                     </div>
                   </div>
                   <div className="flex justify-end">
-                    <button onClick={handleAddItem} className="flex items-center bg-green-600 hover:bg-green-700 px-4 py-2 rounded-lg">
+                    <button 
+                      onClick={handleAddItem} 
+                      disabled={!newItem.value || newItem.value === ''}
+                      className={`flex items-center px-4 py-2 rounded-lg ${
+                        !newItem.value || newItem.value === ''
+                          ? 'bg-gray-600 cursor-not-allowed opacity-50' 
+                          : 'bg-green-600 hover:bg-green-700'
+                      }`}
+                    >
                       <CheckIcon className="h-5 w-5 mr-2" />
                       Ajouter
                     </button>
@@ -943,5 +1030,19 @@ export function MappingScreen() {
           <ArrowRightIcon className="ml-2 h-5 w-5" />
         </button>
       </div>
+
+      {/* Debug section - can be removed in production */}
+      {process.env.NODE_ENV === 'development' && (
+        <GlassCard className="mt-6 p-4" animate>
+          <h3 className="text-sm font-medium mb-2">Debug Info</h3>
+          <div className="text-xs text-gray-400 space-y-1">
+            <div>Active Tab: {activeTab}</div>
+            <div>Items count: {financialData[activeTab]?.length || 0}</div>
+            <div>New Item Value: {newItem.value || 'empty'}</div>
+            <div>Is Adding: {isAdding ? 'true' : 'false'}</div>
+            <div>Financial Data Valid: {financialData ? 'true' : 'false'}</div>
+          </div>
+        </GlassCard>
+      )}
     </div>;
 }
