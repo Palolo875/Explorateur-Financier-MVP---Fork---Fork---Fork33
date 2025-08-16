@@ -2,20 +2,9 @@ import { useCallback, useMemo, useEffect } from 'react';
 import { toast } from 'react-hot-toast';
 import { useFinance } from '../context/FinanceContext';
 import { FinancialItem, FinancialData } from '../types/finance';
-import {
-  validateFinancialItem,
-  validateFinancialData,
-  normalizeNumericValue,
-  generateUniqueId,
-  calculateSafeTotal,
-  ValidationError,
-  DataIntegrityError,
-  validateCategory
-} from '../utils/validation';
+import { validateFinancialItem, validateFinancialData, normalizeNumericValue, generateUniqueId, calculateSafeTotal, ValidationError, DataIntegrityError, validateCategory } from '../utils/validation';
 import { dataPersistence } from '../utils/persistence';
-
 export type FinancialDataType = 'incomes' | 'expenses' | 'savings' | 'debts';
-
 interface UseFinancialDataReturn {
   // Données
   financialData: FinancialData;
@@ -27,39 +16,41 @@ interface UseFinancialDataReturn {
     balance: number;
     netWorth: number;
   };
-  
+
   // Actions
   addItem: (type: FinancialDataType, item: Partial<FinancialItem>) => Promise<boolean>;
   updateItem: (type: FinancialDataType, id: string, updates: Partial<FinancialItem>) => Promise<boolean>;
   deleteItem: (type: FinancialDataType, id: string) => Promise<boolean>;
   duplicateItem: (type: FinancialDataType, id: string) => Promise<boolean>;
   moveItem: (fromType: FinancialDataType, toType: FinancialDataType, id: string) => Promise<boolean>;
-  
+
   // Validation
   validateItem: (type: FinancialDataType, item: Partial<FinancialItem>) => {
     isValid: boolean;
     errors: string[];
   };
-  
+
   // Utilitaires
   getItems: (type: FinancialDataType) => FinancialItem[];
   getItem: (type: FinancialDataType, id: string) => FinancialItem | undefined;
   hasItems: (type: FinancialDataType) => boolean;
   getItemCount: (type: FinancialDataType) => number;
-  
+
   // Import/Export
   exportData: () => string;
   importData: (jsonData: string) => Promise<boolean>;
   clearAllData: () => Promise<boolean>;
-  
+
   // État
   isLoading: boolean;
   hasErrors: boolean;
   lastError: string | null;
 }
-
 export function useFinancialData(): UseFinancialDataReturn {
-  const { financialData, setFinancialData } = useFinance();
+  const {
+    financialData,
+    setFinancialData
+  } = useFinance();
 
   // Charger les données persistées au montage
   useEffect(() => {
@@ -74,7 +65,6 @@ export function useFinancialData(): UseFinancialDataReturn {
         console.error('Erreur lors du chargement des données persistées:', error);
       }
     };
-
     loadPersistedData();
   }, []);
 
@@ -84,7 +74,7 @@ export function useFinancialData(): UseFinancialDataReturn {
     if (validation.success && validation.data) {
       return validation.data;
     }
-    
+
     // Fallback vers des données vides sécurisées
     console.warn('Données financières invalides, utilisation de valeurs par défaut');
     return {
@@ -110,7 +100,6 @@ export function useFinancialData(): UseFinancialDataReturn {
     const savings = calculateSafeTotal(safeFinancialData.savings);
     const debts = calculateSafeTotal(safeFinancialData.debts);
     const investments = calculateSafeTotal(safeFinancialData.investments || []);
-    
     return {
       income,
       expenses,
@@ -122,10 +111,7 @@ export function useFinancialData(): UseFinancialDataReturn {
   }, [safeFinancialData]);
 
   // Fonction pour ajouter un élément
-  const addItem = useCallback(async (
-    type: FinancialDataType, 
-    item: Partial<FinancialItem>
-  ): Promise<boolean> => {
+  const addItem = useCallback(async (type: FinancialDataType, item: Partial<FinancialItem>): Promise<boolean> => {
     try {
       console.log(`=== AJOUT D'ÉLÉMENT (${type.toUpperCase()}) ===`);
       console.log('Données reçues:', item);
@@ -138,7 +124,6 @@ export function useFinancialData(): UseFinancialDataReturn {
         console.error('Validation échouée:', validation.errors);
         return false;
       }
-
       const validatedItem = validation.data!;
 
       // Validation de la catégorie selon le type
@@ -156,7 +141,6 @@ export function useFinancialData(): UseFinancialDataReturn {
         id: generateUniqueId(type),
         value: numericValue
       };
-
       console.log('Élément validé et créé:', newItem);
 
       // Mise à jour sécurisée des données
@@ -164,18 +148,15 @@ export function useFinancialData(): UseFinancialDataReturn {
         if (!currentData) {
           throw new DataIntegrityError('Données courantes nulles');
         }
-
         const validation = validateFinancialData(currentData);
         if (!validation.success) {
           throw new DataIntegrityError('Structure de données corrompue');
         }
-
         const safeCurrentData = validation.data!;
         const updatedData = {
           ...safeCurrentData,
           [type]: [...safeCurrentData[type], newItem]
         };
-
         console.log(`Données mises à jour pour ${type}:`, updatedData[type].length, 'éléments');
         return updatedData;
       });
@@ -183,18 +164,15 @@ export function useFinancialData(): UseFinancialDataReturn {
       // Feedback utilisateur
       const typeLabels = {
         incomes: 'vos revenus',
-        expenses: 'vos dépenses', 
+        expenses: 'vos dépenses',
         savings: 'votre épargne',
         debts: 'vos dettes'
       };
-
       toast.success(`Élément ajouté avec succès à ${typeLabels[type]}`);
       console.log('=== AJOUT TERMINÉ AVEC SUCCÈS ===');
       return true;
-
     } catch (error) {
       console.error('=== ERREUR LORS DE L\'AJOUT ===', error);
-      
       let errorMessage = 'Erreur lors de l\'ajout de l\'élément';
       if (error instanceof ValidationError) {
         errorMessage = `Validation: ${error.message}`;
@@ -203,18 +181,13 @@ export function useFinancialData(): UseFinancialDataReturn {
       } else if (error instanceof Error) {
         errorMessage = error.message;
       }
-      
       toast.error(errorMessage);
       return false;
     }
   }, [setFinancialData]);
 
   // Fonction pour mettre à jour un élément
-  const updateItem = useCallback(async (
-    type: FinancialDataType,
-    id: string,
-    updates: Partial<FinancialItem>
-  ): Promise<boolean> => {
+  const updateItem = useCallback(async (type: FinancialDataType, id: string, updates: Partial<FinancialItem>): Promise<boolean> => {
     try {
       console.log(`=== MISE À JOUR ÉLÉMENT (${type.toUpperCase()}) ===`);
       console.log('ID:', id, 'Mises à jour:', updates);
@@ -227,7 +200,10 @@ export function useFinancialData(): UseFinancialDataReturn {
       }
 
       // Fusionner avec les mises à jour
-      const mergedItem = { ...existingItem, ...updates };
+      const mergedItem = {
+        ...existingItem,
+        ...updates
+      };
 
       // Validation
       const validation = validateFinancialItem(mergedItem);
@@ -236,7 +212,6 @@ export function useFinancialData(): UseFinancialDataReturn {
         toast.error(errorMessage);
         return false;
       }
-
       const validatedItem = validation.data!;
 
       // Validation de la catégorie
@@ -258,22 +233,16 @@ export function useFinancialData(): UseFinancialDataReturn {
         if (!validation.success) {
           throw new DataIntegrityError('Structure de données corrompue');
         }
-
         const safeCurrentData = validation.data!;
         const updatedData = {
           ...safeCurrentData,
-          [type]: safeCurrentData[type].map(item => 
-            item.id === id ? updatedItem : item
-          )
+          [type]: safeCurrentData[type].map(item => item.id === id ? updatedItem : item)
         };
-
         return updatedData;
       });
-
       toast.success('Élément mis à jour avec succès');
       console.log('=== MISE À JOUR TERMINÉE ===');
       return true;
-
     } catch (error) {
       console.error('=== ERREUR LORS DE LA MISE À JOUR ===', error);
       toast.error('Erreur lors de la mise à jour');
@@ -282,10 +251,7 @@ export function useFinancialData(): UseFinancialDataReturn {
   }, [safeFinancialData, setFinancialData]);
 
   // Fonction pour supprimer un élément
-  const deleteItem = useCallback(async (
-    type: FinancialDataType,
-    id: string
-  ): Promise<boolean> => {
+  const deleteItem = useCallback(async (type: FinancialDataType, id: string): Promise<boolean> => {
     try {
       console.log(`=== SUPPRESSION ÉLÉMENT (${type.toUpperCase()}) ===`);
       console.log('ID:', id);
@@ -303,20 +269,16 @@ export function useFinancialData(): UseFinancialDataReturn {
         if (!validation.success) {
           throw new DataIntegrityError('Structure de données corrompue');
         }
-
         const safeCurrentData = validation.data!;
         const updatedData = {
           ...safeCurrentData,
           [type]: safeCurrentData[type].filter(item => item.id !== id)
         };
-
         return updatedData;
       });
-
       toast.success('Élément supprimé avec succès');
       console.log('=== SUPPRESSION TERMINÉE ===');
       return true;
-
     } catch (error) {
       console.error('=== ERREUR LORS DE LA SUPPRESSION ===', error);
       toast.error('Erreur lors de la suppression');
@@ -325,10 +287,7 @@ export function useFinancialData(): UseFinancialDataReturn {
   }, [safeFinancialData, setFinancialData]);
 
   // Fonction pour dupliquer un élément
-  const duplicateItem = useCallback(async (
-    type: FinancialDataType,
-    id: string
-  ): Promise<boolean> => {
+  const duplicateItem = useCallback(async (type: FinancialDataType, id: string): Promise<boolean> => {
     try {
       const existingItem = safeFinancialData[type].find(item => item.id === id);
       if (!existingItem) {
@@ -337,12 +296,14 @@ export function useFinancialData(): UseFinancialDataReturn {
       }
 
       // Créer une copie sans l'ID
-      const { id: _, ...itemCopy } = existingItem;
+      const {
+        id: _,
+        ...itemCopy
+      } = existingItem;
       const duplicatedItem = {
         ...itemCopy,
         description: `${itemCopy.description || ''} (copie)`.trim()
       };
-
       return await addItem(type, duplicatedItem);
     } catch (error) {
       console.error('Erreur lors de la duplication:', error);
@@ -352,14 +313,9 @@ export function useFinancialData(): UseFinancialDataReturn {
   }, [safeFinancialData, addItem]);
 
   // Fonction pour déplacer un élément d'un type à un autre
-  const moveItem = useCallback(async (
-    fromType: FinancialDataType,
-    toType: FinancialDataType,
-    id: string
-  ): Promise<boolean> => {
+  const moveItem = useCallback(async (fromType: FinancialDataType, toType: FinancialDataType, id: string): Promise<boolean> => {
     try {
       if (fromType === toType) return true;
-
       const existingItem = safeFinancialData[fromType].find(item => item.id === id);
       if (!existingItem) {
         toast.error('Élément non trouvé');
@@ -367,16 +323,17 @@ export function useFinancialData(): UseFinancialDataReturn {
       }
 
       // Ajouter au nouveau type
-      const { id: _, ...itemData } = existingItem;
+      const {
+        id: _,
+        ...itemData
+      } = existingItem;
       const addSuccess = await addItem(toType, itemData);
-      
       if (addSuccess) {
         // Supprimer de l'ancien type
         await deleteItem(fromType, id);
         toast.success(`Élément déplacé de ${fromType} vers ${toType}`);
         return true;
       }
-
       return false;
     } catch (error) {
       console.error('Erreur lors du déplacement:', error);
@@ -386,18 +343,13 @@ export function useFinancialData(): UseFinancialDataReturn {
   }, [safeFinancialData, addItem, deleteItem]);
 
   // Fonction de validation
-  const validateItem = useCallback((
-    type: FinancialDataType,
-    item: Partial<FinancialItem>
-  ) => {
+  const validateItem = useCallback((type: FinancialDataType, item: Partial<FinancialItem>) => {
     const validation = validateFinancialItem(item);
     const categoryValid = item.category ? validateCategory(item.category, type) : false;
-    
     const errors = [...(validation.errors || [])];
     if (item.category && !categoryValid) {
       errors.push(`Catégorie invalide pour ${type}`);
     }
-
     return {
       isValid: validation.success && categoryValid,
       errors
@@ -408,15 +360,12 @@ export function useFinancialData(): UseFinancialDataReturn {
   const getItems = useCallback((type: FinancialDataType) => {
     return safeFinancialData[type] || [];
   }, [safeFinancialData]);
-
   const getItem = useCallback((type: FinancialDataType, id: string) => {
     return safeFinancialData[type]?.find(item => item.id === id);
   }, [safeFinancialData]);
-
   const hasItems = useCallback((type: FinancialDataType) => {
     return (safeFinancialData[type]?.length || 0) > 0;
   }, [safeFinancialData]);
-
   const getItemCount = useCallback((type: FinancialDataType) => {
     return safeFinancialData[type]?.length || 0;
   }, [safeFinancialData]);
@@ -436,7 +385,6 @@ export function useFinancialData(): UseFinancialDataReturn {
   const importData = useCallback(async (jsonData: string): Promise<boolean> => {
     try {
       const success = await dataPersistence.importAllData(jsonData);
-      
       if (success) {
         // Recharger les données financières depuis la persistance
         const newData = dataPersistence.loadFinancialData();
@@ -466,11 +414,10 @@ export function useFinancialData(): UseFinancialDataReturn {
         debts: [],
         investments: []
       };
-      
+
       // Effacer dans le state et la persistance
       setFinancialData(emptyData);
       dataPersistence.clearAllData();
-      
       toast.success('Toutes les données ont été effacées');
       return true;
     } catch (error) {
@@ -479,7 +426,6 @@ export function useFinancialData(): UseFinancialDataReturn {
       return false;
     }
   }, [setFinancialData]);
-
   return {
     financialData: safeFinancialData,
     totals,
@@ -496,8 +442,10 @@ export function useFinancialData(): UseFinancialDataReturn {
     exportData,
     importData,
     clearAllData,
-    isLoading: false, // TODO: Implémenter état de chargement
-    hasErrors: false, // TODO: Implémenter détection d'erreurs
+    isLoading: false,
+    // TODO: Implémenter état de chargement
+    hasErrors: false,
+    // TODO: Implémenter détection d'erreurs
     lastError: null // TODO: Implémenter suivi des erreurs
   };
 }

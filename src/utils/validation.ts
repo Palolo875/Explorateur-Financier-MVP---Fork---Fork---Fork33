@@ -4,21 +4,21 @@ import { FinancialItem, FinancialData } from '../types/finance';
 // Schéma de validation pour un élément financier
 export const FinancialItemSchema = z.object({
   id: z.string().optional(),
-  value: z.union([
-    z.number().positive({ message: "Le montant doit être positif" }),
-    z.string()
-      .min(1, { message: "Le montant est requis" })
-      .refine((val) => {
-        const num = parseFloat(val.replace(',', '.'));
-        return !isNaN(num) && num > 0;
-      }, { message: "Le montant doit être un nombre positif valide" })
-  ]),
-  category: z.string()
-    .min(1, { message: "La catégorie est requise" })
-    .trim(),
+  value: z.union([z.number().positive({
+    message: "Le montant doit être positif"
+  }), z.string().min(1, {
+    message: "Le montant est requis"
+  }).refine(val => {
+    const num = parseFloat(val.replace(',', '.'));
+    return !isNaN(num) && num > 0;
+  }, {
+    message: "Le montant doit être un nombre positif valide"
+  })]),
+  category: z.string().min(1, {
+    message: "La catégorie est requise"
+  }).trim(),
   description: z.string().optional(),
-  frequency: z.enum(['daily', 'weekly', 'monthly', 'quarterly', 'yearly', 'once'])
-    .default('monthly'),
+  frequency: z.enum(['daily', 'weekly', 'monthly', 'quarterly', 'yearly', 'once']).default('monthly'),
   isRecurring: z.boolean().default(true)
 });
 
@@ -92,15 +92,13 @@ export function normalizeNumericValue(value: string | number): number {
   if (typeof value === 'number') {
     return value;
   }
-  
+
   // Nettoyer la chaîne et convertir
   const cleaned = value.replace(',', '.').trim();
   const parsed = parseFloat(cleaned);
-  
   if (isNaN(parsed) || !isFinite(parsed) || parsed <= 0) {
     throw new Error('Valeur numérique invalide');
   }
-  
   return parsed;
 }
 
@@ -112,23 +110,10 @@ export function generateUniqueId(prefix: string = 'item'): string {
 }
 
 // Validation des catégories selon le type
-export const INCOME_CATEGORIES = [
-  'salary', 'freelance', 'investments', 'rental', 'other_income'
-] as const;
-
-export const EXPENSE_CATEGORIES = [
-  'housing', 'food', 'transport', 'utilities', 'entertainment', 
-  'health', 'education', 'other_expense'
-] as const;
-
-export const SAVING_CATEGORIES = [
-  'emergency', 'retirement', 'savings', 'project'
-] as const;
-
-export const DEBT_CATEGORIES = [
-  'mortgage', 'credit_card', 'loan', 'other_debt'
-] as const;
-
+export const INCOME_CATEGORIES = ['salary', 'freelance', 'investments', 'rental', 'other_income'] as const;
+export const EXPENSE_CATEGORIES = ['housing', 'food', 'transport', 'utilities', 'entertainment', 'health', 'education', 'other_expense'] as const;
+export const SAVING_CATEGORIES = ['emergency', 'retirement', 'savings', 'project'] as const;
+export const DEBT_CATEGORIES = ['mortgage', 'credit_card', 'loan', 'other_debt'] as const;
 export type IncomeCategory = typeof INCOME_CATEGORIES[number];
 export type ExpenseCategory = typeof EXPENSE_CATEGORIES[number];
 export type SavingCategory = typeof SAVING_CATEGORIES[number];
@@ -156,7 +141,6 @@ export function calculateSafeTotal(items: FinancialItem[]): number {
     console.warn('calculateSafeTotal: items n\'est pas un tableau', items);
     return 0;
   }
-  
   return items.reduce((total, item) => {
     try {
       const value = normalizeNumericValue(item.value);
@@ -170,16 +154,11 @@ export function calculateSafeTotal(items: FinancialItem[]): number {
 
 // Utilitaires pour la gestion d'erreurs
 export class ValidationError extends Error {
-  constructor(
-    message: string,
-    public readonly field?: string,
-    public readonly code?: string
-  ) {
+  constructor(message: string, public readonly field?: string, public readonly code?: string) {
     super(message);
     this.name = 'ValidationError';
   }
 }
-
 export class DataIntegrityError extends Error {
   constructor(message: string, public readonly context?: any) {
     super(message);
@@ -191,7 +170,6 @@ export class DataIntegrityError extends Error {
 export function isValidFinancialItem(item: any): item is FinancialItem {
   return FinancialItemSchema.safeParse(item).success;
 }
-
 export function isValidFinancialData(data: any): data is FinancialData {
   return FinancialDataSchema.safeParse(data).success;
 }
