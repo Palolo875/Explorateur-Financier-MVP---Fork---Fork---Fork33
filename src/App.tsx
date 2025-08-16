@@ -2,7 +2,7 @@ import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Layout } from './components/Layout';
 import { QuestionScreen } from './components/QuestionScreen';
-import { MappingScreen } from './components/MappingScreen';
+import { MappingScreenNew as MappingScreen } from './components/MappingScreenNew';
 import { RevealScreen } from './components/RevealScreen';
 import { Dashboard } from './components/Dashboard';
 import { AdvancedSimulation } from './components/AdvancedSimulation';

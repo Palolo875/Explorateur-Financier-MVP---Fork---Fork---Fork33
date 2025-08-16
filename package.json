@@ -24,8 +24,9 @@
     "html-to-image": "^1.11.13",
     "jspdf": "^2.5.1",
     "react-dropzone": "^14.2.3",
-    "date-fns/locale": "latest",
-    "zustand/middleware": "latest"
+    "zod": "^3.23.8",
+    "react-hook-form": "^7.53.0",
+    "@hookform/resolvers": "^3.6.0"
   },
   "devDependencies": {
     "@types/node": "^20.11.18",
