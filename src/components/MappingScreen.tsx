@@ -297,174 +297,68 @@ export function MappingScreen() {
   };
   // Handle adding a new item
   const handleAddItem = async () => {
+    console.log('=== DÉBUT FONCTION handleAddItem ===');
+    console.log('newItem:', newItem);
+    console.log('activeTab:', activeTab);
+    console.log('financialData:', financialData);
+
+    // Validation simple du montant
+    if (!newItem.value || newItem.value === '' || parseFloat(newItem.value.toString()) <= 0) {
+      console.log('Validation échouée: montant invalide');
+      toast.error('Veuillez entrer un montant positif valide');
+      return;
+    }
+
     try {
-      console.log('Début de handleAddItem avec:', newItem);
-      
-      // Validation de base - vérifier que la valeur n'est pas vide
-      if (!newItem.value || newItem.value === '') {
-        toast.error('Veuillez entrer un montant');
+      // Conversion simple du montant
+      const numericValue = parseFloat(newItem.value.toString());
+      console.log('Montant converti:', numericValue);
+
+      if (isNaN(numericValue)) {
+        console.log('Erreur: montant NaN');
+        toast.error('Le montant doit être un nombre valide');
         return;
       }
 
-      // Conversion de la valeur en nombre avec gestion d'erreur explicite
-      let numericValue;
-      try {
-        // Nettoyer la valeur d'entrée (supprimer les espaces et caractères non numériques sauf . et ,)
-        const cleanValue = typeof newItem.value === 'string' 
-          ? newItem.value.replace(/[^\d,.-]/g, '').replace(',', '.') 
-          : newItem.value.toString();
-        
-        numericValue = parseFloat(cleanValue);
-        
-        if (isNaN(numericValue) || numericValue <= 0) {
-          toast.error('Le montant doit être un nombre positif valide');
-          return;
-        }
-      } catch (error) {
-        console.error('Erreur lors de la conversion du montant:', error);
-        toast.error('Le montant est invalide');
-        return;
-      }
-
-      // Créer une copie complète et sécurisée de l'élément
-      const itemToSave = {
+      // Créer l'élément simple
+      const newFinancialItem = {
+        id: `${activeTab}-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
         value: numericValue,
-        category: newItem.category || '',
+        category: newItem.category || 'other',
         description: newItem.description || '',
         frequency: newItem.frequency || 'monthly',
-        isRecurring: newItem.isRecurring !== undefined ? newItem.isRecurring : true
+        isRecurring: newItem.isRecurring || true
       };
 
-      // Vérifier et assigner une catégorie si nécessaire
-      if (!itemToSave.category) {
-        console.log('Pas de catégorie définie, tentative de catégorisation automatique');
-        
-        // Essayer la catégorisation automatique si une description est disponible
-        if (itemToSave.description && itemToSave.description.trim() !== '') {
-          try {
-            console.log('Tentative de catégorisation pour:', itemToSave.description);
-            const suggestedCategory = await categorizeTransaction(
-              itemToSave.description, 
-              activeTab.slice(0, -1) as 'income' | 'expense' | 'saving' | 'debt', 
-              numericValue
-            );
-            console.log('Catégorie suggérée:', suggestedCategory);
-            if (suggestedCategory) {
-              itemToSave.category = suggestedCategory;
-            }
-          } catch (categorizationError) {
-            console.error('Échec de la catégorisation automatique:', categorizationError);
-            // Continuer sans catégorisation automatique
-          }
-        }
-        
-        // Assigner une catégorie par défaut si toujours pas définie
-        if (!itemToSave.category) {
-          console.log("Attribution d'une catégorie par défaut");
-          switch (activeTab) {
-            case 'incomes':
-              itemToSave.category = 'other_income';
-              break;
-            case 'expenses':
-              itemToSave.category = 'other_expense';
-              break;
-            case 'savings':
-              itemToSave.category = 'savings';
-              break;
-            case 'debts':
-              itemToSave.category = 'other_debt';
-              break;
-            default:
-              itemToSave.category = 'other';
-          }
-        }
-      }
+      console.log('Nouvel élément créé:', newFinancialItem);
 
-      // Générer un ID unique avec format simple et robuste
-      const timestamp = Date.now();
-      const randomPart = Math.floor(Math.random() * 10000);
-      const uniqueId = `${activeTab}-${timestamp}-${randomPart}`;
-
-      // Créer l'élément final avec toutes les propriétés nécessaires
-      const itemWithId = {
-        ...itemToSave,
-        id: uniqueId
+      // Créer les nouvelles données financières
+      const currentFinancialData = financialData || {
+        incomes: [],
+        expenses: [],
+        savings: [],
+        debts: [],
+        investments: []
       };
 
-      console.log('Élément final prêt à être ajouté:', itemWithId);
+      const updatedFinancialData = {
+        ...currentFinancialData,
+        [activeTab]: [...(currentFinancialData[activeTab] || []), newFinancialItem]
+      };
 
-      // Vérifier que financialData existe et est un objet valide
-      if (!financialData || typeof financialData !== 'object') {
-        console.error('financialData est invalide:', financialData);
-        toast.error('Erreur de configuration des données financières');
+      console.log('Nouvelles données financières:', updatedFinancialData);
+
+      // Sauvegarder directement avec le store
+      console.log('Type de storeSetFinancialData:', typeof storeSetFinancialData);
+      
+      if (typeof storeSetFinancialData === 'function') {
+        console.log('Utilisation du store pour sauvegarder...');
+        storeSetFinancialData(updatedFinancialData);
+        console.log('Sauvegarde store terminée');
+      } else {
+        console.error('storeSetFinancialData n\'est pas une fonction!');
+        toast.error('Erreur de configuration de la sauvegarde');
         return;
-      }
-
-      // Vérifier que la propriété activeTab existe dans financialData
-      if (!financialData[activeTab] || !Array.isArray(financialData[activeTab])) {
-        console.error(`financialData[${activeTab}] n'est pas un tableau valide:`, financialData[activeTab]);
-        // Initialiser le tableau s'il n'existe pas
-        financialData[activeTab] = [];
-      }
-
-      // Créer une copie complète des données financières actuelles
-      const currentData = JSON.parse(JSON.stringify(financialData));
-      
-      // Ajouter le nouvel élément à la liste appropriée
-      const updatedItems = [...(currentData[activeTab] || []), itemWithId];
-      
-      // Créer un nouvel objet de données financières
-      const updatedData = {
-        ...currentData,
-        [activeTab]: updatedItems
-      };
-
-      console.log('Données financières mises à jour:', updatedData);
-
-      // Mettre à jour l'état avec les nouvelles données
-      try {
-        // Vérifier que setFinancialData est une fonction
-        if (typeof setFinancialData !== 'function') {
-          console.error('setFinancialData n\'est pas une fonction:', typeof setFinancialData);
-          console.log('Tentative de sauvegarde avec le store directement...');
-          
-          // Essayer avec le store directement
-          if (typeof storeSetFinancialData === 'function') {
-            console.log('Utilisation du store pour la sauvegarde:', updatedData);
-            storeSetFinancialData(updatedData);
-            console.log('Sauvegarde via le store réussie');
-          } else {
-            toast.error('Erreur de configuration - aucune fonction de sauvegarde disponible');
-            return;
-          }
-        } else {
-          console.log('Appel de setFinancialData avec:', updatedData);
-          setFinancialData(updatedData);
-          console.log('Mise à jour des données financières réussie');
-        }
-        
-        // Vérifier que les données ont été sauvegardées
-        setTimeout(() => {
-          console.log('Vérification des données après sauvegarde:', financialData);
-        }, 100);
-        
-      } catch (setDataError) {
-        console.error('Erreur lors de la mise à jour des données:', setDataError);
-        
-        // Essayer avec la fonction de sauvegarde du store en cas d'erreur
-        try {
-          console.log('Tentative de sauvegarde de secours avec le store...');
-          if (typeof storeSetFinancialData === 'function') {
-            storeSetFinancialData(updatedData);
-            console.log('Sauvegarde de secours réussie');
-          } else {
-            throw new Error('Aucune fonction de sauvegarde de secours disponible');
-          }
-        } catch (backupError) {
-          console.error('Erreur lors de la sauvegarde de secours:', backupError);
-          toast.error('Erreur lors de la sauvegarde des données');
-          return;
-        }
       }
 
       // Réinitialiser le formulaire
@@ -476,31 +370,19 @@ export function MappingScreen() {
         isRecurring: true
       });
 
-      // Fermer le formulaire d'ajout
       setIsAdding(false);
+      toast.success('Élément ajouté avec succès!');
 
-      // Afficher une confirmation
-      toast.success('Élément ajouté avec succès');
-
-      // Jouer le son de succès
-      try {
-        const audio = new Audio(SOUNDS.success);
-        audio.volume = 0.5;
-        audio.play().catch(e => console.log('Son désactivé:', e));
-      } catch (audioError) {
-        console.log('Erreur lors de la lecture du son:', audioError);
-      }
+      console.log('=== FIN FONCTION handleAddItem (SUCCÈS) ===');
 
     } catch (error) {
-      // Gestion des erreurs globale
-      console.error("Erreur critique lors de l'ajout d'un élément:", error);
+      console.error('=== ERREUR DANS handleAddItem ===');
+      console.error('Type d\'erreur:', typeof error);
+      console.error('Message d\'erreur:', error);
+      console.error('Stack trace:', error instanceof Error ? error.stack : 'Pas de stack trace');
       
-      // Message d'erreur plus informatif pour l'utilisateur
-      if (error instanceof Error) {
-        console.error('Détails de l\'erreur:', error.message, error.stack);
-      }
-      
-      toast.error("Une erreur est survenue lors de l'ajout de l'élément. Veuillez réessayer.");
+      toast.error('Une erreur inattendue s\'est produite');
+      console.log('=== FIN FONCTION handleAddItem (ERREUR) ===');
     }
   };
   // Handle editing an item
@@ -1073,44 +955,57 @@ export function MappingScreen() {
       {/* Debug section - can be removed in production */}
       {process.env.NODE_ENV === 'development' && (
         <GlassCard className="mt-6 p-4" animate>
-          <h3 className="text-sm font-medium mb-2">Debug Info</h3>
-          <div className="text-xs text-gray-400 space-y-1">
-            <div>Active Tab: {activeTab}</div>
-            <div>Items count: {financialData[activeTab]?.length || 0}</div>
-            <div>New Item Value: {newItem.value || 'empty'}</div>
-            <div>Is Adding: {isAdding ? 'true' : 'false'}</div>
-            <div>Financial Data Valid: {financialData ? 'true' : 'false'}</div>
-            <div>setFinancialData type: {typeof setFinancialData}</div>
-            <div>storeSetFinancialData type: {typeof storeSetFinancialData}</div>
-            <div>Context setFinancialData available: {setFinancialData ? 'yes' : 'no'}</div>
-            <div>Store setFinancialData available: {storeSetFinancialData ? 'yes' : 'no'}</div>
+          <h3 className="text-sm font-medium mb-2">🔧 Debug Info</h3>
+          <div className="text-xs text-gray-400 space-y-1 mb-3">
+            <div>Active Tab: <span className="text-white">{activeTab}</span></div>
+            <div>Items count: <span className="text-white">{financialData[activeTab]?.length || 0}</span></div>
+            <div>New Item Value: <span className="text-white">{newItem.value || 'empty'}</span></div>
+            <div>Is Adding: <span className="text-white">{isAdding ? 'true' : 'false'}</span></div>
+            <div>Financial Data Valid: <span className="text-white">{financialData ? 'true' : 'false'}</span></div>
+            <div>Store Function Available: <span className="text-white">{typeof storeSetFinancialData === 'function' ? 'YES ✅' : 'NO ❌'}</span></div>
           </div>
-          <div className="mt-3">
+          <div className="grid grid-cols-2 gap-2">
             <button 
               onClick={() => {
-                console.log('Test de sauvegarde déclenché');
+                console.log('=== TEST SAUVEGARDE ===');
+                console.log('financialData actuel:', financialData);
+                console.log('storeSetFinancialData:', typeof storeSetFinancialData);
+                
                 const testData = {
-                  ...financialData,
-                  test: Date.now()
+                  incomes: [],
+                  expenses: [],
+                  savings: [],
+                  debts: [],
+                  investments: [],
+                  test: `Test-${Date.now()}`
                 };
+                
                 try {
-                  if (typeof setFinancialData === 'function') {
-                    setFinancialData(testData);
-                    toast.success('Test de sauvegarde contexte réussi');
-                  } else if (typeof storeSetFinancialData === 'function') {
+                  if (typeof storeSetFinancialData === 'function') {
                     storeSetFinancialData(testData);
-                    toast.success('Test de sauvegarde store réussi');
+                    toast.success('Test sauvegarde OK!');
+                    console.log('Test sauvegarde réussi');
                   } else {
-                    toast.error('Aucune fonction de sauvegarde disponible');
+                    toast.error('Store non disponible');
+                    console.error('storeSetFinancialData non disponible');
                   }
                 } catch (error) {
-                  console.error('Erreur test sauvegarde:', error);
-                  toast.error('Erreur lors du test de sauvegarde');
+                  console.error('Erreur test:', error);
+                  toast.error('Erreur test sauvegarde');
                 }
               }}
               className="bg-blue-600 hover:bg-blue-700 px-2 py-1 rounded text-xs"
             >
-              Test Sauvegarde
+              Test Store
+            </button>
+            <button 
+              onClick={() => {
+                console.log('=== FORCE RELOAD ===');
+                window.location.reload();
+              }}
+              className="bg-orange-600 hover:bg-orange-700 px-2 py-1 rounded text-xs"
+            >
+              Reload Page
             </button>
           </div>
         </GlassCard>
