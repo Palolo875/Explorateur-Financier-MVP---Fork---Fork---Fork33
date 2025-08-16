@@ -146,6 +146,48 @@ export function MappingScreen() {
   const {
     setHasCompletedOnboarding
   } = useFinanceStore();
+
+  // === VALIDATION ET INITIALISATION SÉCURISÉE DES DONNÉES ===
+  
+  // Vérifier et corriger la structure des données financières
+  React.useEffect(() => {
+    if (!financialData) {
+      console.warn('financialData est null, initialisation avec des valeurs par défaut');
+      setFinancialData({
+        incomes: [],
+        expenses: [],
+        savings: [],
+        debts: [],
+        investments: []
+      });
+      return;
+    }
+
+    // Vérifier que toutes les propriétés requises existent et sont des tableaux
+    const requiredProperties = ['incomes', 'expenses', 'savings', 'debts'] as const;
+    let needsUpdate = false;
+    const safeData = { ...financialData };
+
+    requiredProperties.forEach(prop => {
+      if (!Array.isArray(financialData[prop])) {
+        console.warn(`financialData.${prop} n'est pas un tableau, correction en cours`);
+        safeData[prop] = [];
+        needsUpdate = true;
+      }
+    });
+
+    // Ajouter investments si manquant
+    if (!Array.isArray(financialData.investments)) {
+      safeData.investments = [];
+      needsUpdate = true;
+    }
+
+    if (needsUpdate) {
+      console.log('Mise à jour de la structure des données financières:', safeData);
+      setFinancialData(safeData);
+    }
+  }, [financialData, setFinancialData]);
+
   // State for current tab
   const [activeTab, setActiveTab] = useState<'incomes' | 'expenses' | 'savings' | 'debts'>('incomes');
   // State for adding new items
@@ -295,94 +337,142 @@ export function MappingScreen() {
   // Handle adding a new item
   const handleAddItem = () => {
     try {
-      console.log('Début de handleAddItem:', {
-        newItem,
-        activeTab,
-        financialData
-      });
+      console.log('=== DÉBUT AJOUT ÉLÉMENT ===');
+      console.log('Données reçues:', { newItem, activeTab, financialData });
 
-      // Validation renforcée
+      // === VALIDATION STRICTE ===
+      
+      // 1. Validation du montant
       if (!newItem.value || newItem.value === '' || newItem.value === '0') {
+        console.error('Montant manquant ou invalide:', newItem.value);
         toast.error('Veuillez entrer un montant valide');
         return;
       }
 
-      // Conversion sécurisée de la valeur en nombre
+      // 2. Conversion et validation numérique
       let numericValue: number;
       try {
-        numericValue = typeof newItem.value === 'string' ? parseFloat(newItem.value.replace(',', '.')) : Number(newItem.value);
+        const cleanValue = typeof newItem.value === 'string' 
+          ? newItem.value.replace(',', '.').trim() 
+          : String(newItem.value);
+        
+        numericValue = parseFloat(cleanValue);
+        
         if (isNaN(numericValue) || !isFinite(numericValue) || numericValue <= 0) {
+          console.error('Conversion numérique échouée:', { original: newItem.value, converted: numericValue });
           toast.error('Le montant doit être un nombre positif valide');
           return;
         }
       } catch (conversionError) {
-        console.error('Erreur de conversion du montant:', conversionError);
-        toast.error('Montant invalide');
+        console.error('Erreur lors de la conversion du montant:', conversionError);
+        toast.error('Format de montant invalide');
         return;
       }
 
-      // Validation de la catégorie
+      // 3. Validation de la catégorie
       if (!newItem.category || newItem.category.trim() === '') {
+        console.error('Catégorie manquante');
         toast.error('Veuillez sélectionner une catégorie');
         return;
       }
 
-      // Validation de la fréquence
-      const validFrequencies = ['daily', 'weekly', 'monthly', 'quarterly', 'yearly', 'once'];
+      // 4. Validation de l'onglet actif
+      const validTabs = ['incomes', 'expenses', 'savings', 'debts'] as const;
+      if (!validTabs.includes(activeTab)) {
+        console.error('Onglet actif invalide:', activeTab);
+        toast.error('Erreur: catégorie financière invalide');
+        return;
+      }
+
+      // 5. Validation de la fréquence
+      const validFrequencies = ['daily', 'weekly', 'monthly', 'quarterly', 'yearly', 'once'] as const;
       const frequency = newItem.frequency || 'monthly';
-      if (!validFrequencies.includes(frequency)) {
+      if (!validFrequencies.includes(frequency as any)) {
+        console.error('Fréquence invalide:', frequency);
         toast.error('Fréquence invalide');
         return;
       }
 
-      // Générer un ID unique plus robuste
-      const timestamp = Date.now();
-      const random = Math.random().toString(36).substr(2, 9);
-      const uniqueId = `${activeTab}-${timestamp}-${random}`;
+      // === CRÉATION DE L'ÉLÉMENT ===
 
-      // Créer un nouvel élément avec validation complète
+      // Générer un ID unique et robuste
+      const timestamp = Date.now();
+      const randomSuffix = Math.random().toString(36).substr(2, 9);
+      const uniqueId = `${activeTab}_${timestamp}_${randomSuffix}`;
+
+      // Créer le nouvel élément financier avec toutes les validations
       const newFinancialItem: FinancialItem = {
         id: uniqueId,
         value: numericValue,
         category: newItem.category.trim(),
         description: newItem.description?.trim() || '',
-        frequency: frequency,
+        frequency: frequency as FinancialItem['frequency'],
         isRecurring: Boolean(newItem.isRecurring)
       };
+
       console.log('Nouvel élément créé:', newFinancialItem);
 
-      // Vérifier que financialData existe et est valide
-      if (!financialData || typeof financialData !== 'object') {
-        console.error('financialData invalide:', financialData);
-        toast.error('Erreur de données financières');
+      // === VALIDATION DES DONNÉES EXISTANTES ===
+
+      if (!financialData) {
+        console.error('financialData est null ou undefined');
+        toast.error('Erreur: données financières non initialisées');
         return;
       }
 
-      // Vérifier que l'onglet actif existe
+      if (typeof financialData !== 'object') {
+        console.error('financialData n\'est pas un objet:', typeof financialData);
+        toast.error('Erreur: structure de données incorrecte');
+        return;
+      }
+
+      // Vérifier que l'onglet existe dans les données
       if (!financialData.hasOwnProperty(activeTab)) {
-        console.error(`L'onglet ${activeTab} n'existe pas dans financialData`);
-        toast.error('Erreur de catégorie financière');
+        console.error(`L'onglet ${activeTab} n'existe pas dans financialData:`, Object.keys(financialData));
+        toast.error('Erreur: catégorie financière non trouvée');
         return;
       }
 
-      // Mise à jour sécurisée de l'état
-      setFinancialData(prevData => {
-        // Créer une copie complète des données existantes
-        const updatedData = {
-          ...prevData,
-          incomes: prevData.incomes || [],
-          expenses: prevData.expenses || [],
-          savings: prevData.savings || [],
-          debts: prevData.debts || [],
-          investments: prevData.investments || []
+      // Vérifier que c'est un tableau
+      if (!Array.isArray(financialData[activeTab])) {
+        console.error(`financialData[${activeTab}] n'est pas un tableau:`, financialData[activeTab]);
+        toast.error('Erreur: format de données incorrect');
+        return;
+      }
+
+      // === MISE À JOUR SÉCURISÉE ===
+
+      console.log('Tentative de mise à jour des données...');
+      
+      setFinancialData(currentData => {
+        // Validation supplémentaire des données courantes
+        if (!currentData || typeof currentData !== 'object') {
+          console.error('currentData invalide dans setFinancialData:', currentData);
+          throw new Error('Données courantes invalides');
+        }
+
+        // Créer une nouvelle structure avec toutes les propriétés garanties
+        const safeCurrentData = {
+          incomes: Array.isArray(currentData.incomes) ? currentData.incomes : [],
+          expenses: Array.isArray(currentData.expenses) ? currentData.expenses : [],
+          savings: Array.isArray(currentData.savings) ? currentData.savings : [],
+          debts: Array.isArray(currentData.debts) ? currentData.debts : [],
+          investments: Array.isArray(currentData.investments) ? currentData.investments : []
         };
 
-        // Ajouter le nouvel élément à la catégorie appropriée
-        const currentItems = updatedData[activeTab] || [];
-        updatedData[activeTab] = [...currentItems, newFinancialItem];
-        console.log('Données mises à jour:', updatedData);
+        // Ajouter le nouvel élément au bon endroit
+        const updatedData = {
+          ...safeCurrentData,
+          [activeTab]: [...safeCurrentData[activeTab], newFinancialItem]
+        };
+
+        console.log('Nouvelles données après ajout:', updatedData);
+        console.log(`Nombre d'éléments dans ${activeTab}:`, updatedData[activeTab].length);
+
         return updatedData;
       });
+
+      // === NETTOYAGE ET FEEDBACK ===
 
       // Réinitialiser le formulaire
       setNewItem({
@@ -393,37 +483,62 @@ export function MappingScreen() {
         isRecurring: true
       });
 
-      // Fermer le formulaire
+      // Fermer le formulaire d'ajout
       setIsAdding(false);
 
-      // Confirmation de succès
-      toast.success('Élément ajouté avec succès');
+      // Notification de succès
+      toast.success(`Élément ajouté avec succès à ${activeTab === 'incomes' ? 'vos revenus' : activeTab === 'expenses' ? 'vos dépenses' : activeTab === 'savings' ? 'votre épargne' : 'vos dettes'}`);
 
-      // Son de succès
+      // Son de succès (optionnel)
       try {
         const audio = new Audio(SOUNDS.success);
         audio.volume = 0.3;
-        audio.play().catch(e => console.log('Son désactivé:', e));
+        audio.play().catch(audioError => {
+          console.log('Son non disponible (normal en développement):', audioError);
+        });
       } catch (audioError) {
-        console.log('Erreur lors de la lecture du son:', audioError);
+        console.log('Erreur audio (non critique):', audioError);
       }
-    } catch (error) {
-      // Gestion d'erreur améliorée
-      console.error('Erreur dans handleAddItem:', error);
-      if (error instanceof Error) {
-        console.error("Message d'erreur:", error.message);
-        console.error('Stack trace:', error.stack);
 
-        // Messages d'erreur plus spécifiques
-        if (error.message.includes('Cannot read property')) {
-          toast.error('Erreur de structure des données. Veuillez recharger la page.');
+      console.log('=== AJOUT ÉLÉMENT TERMINÉ AVEC SUCCÈS ===');
+
+    } catch (error) {
+      // === GESTION D'ERREUR DÉTAILLÉE ===
+      
+      console.error('=== ERREUR LORS DE L\'AJOUT ===');
+      console.error('Type d\'erreur:', typeof error);
+      console.error('Erreur complète:', error);
+      
+      if (error instanceof Error) {
+        console.error('Message d\'erreur:', error.message);
+        console.error('Stack trace:', error.stack);
+        
+        // Messages d'erreur spécifiques selon le type d'erreur
+        let errorMessage = 'Une erreur est survenue lors de l\'ajout';
+        
+        if (error.message.includes('Cannot read propert')) {
+          errorMessage = 'Erreur de structure des données. Veuillez recharger la page.';
         } else if (error.message.includes('setFinancialData')) {
-          toast.error('Erreur de sauvegarde. Veuillez réessayer.');
-        } else {
-          toast.error(`Erreur: ${error.message}`);
+          errorMessage = 'Erreur de sauvegarde des données. Veuillez réessayer.';
+        } else if (error.message.includes('Invalid')) {
+          errorMessage = 'Données invalides. Vérifiez vos saisies.';
+        } else if (error.message.includes('Network')) {
+          errorMessage = 'Erreur de connexion. Veuillez réessayer.';
+        } else if (error.message.length > 0) {
+          errorMessage = `Erreur: ${error.message}`;
         }
+        
+        toast.error(errorMessage);
       } else {
-        toast.error("Erreur inconnue lors de l'ajout de l'élément");
+        console.error('Erreur non-standard:', error);
+        toast.error('Erreur inconnue lors de l\'ajout. Veuillez recharger la page et réessayer.');
+      }
+
+      // En cas d'erreur, on peut essayer de réinitialiser le formulaire
+      try {
+        setIsAdding(false);
+      } catch (resetError) {
+        console.error('Impossible de réinitialiser le formulaire:', resetError);
       }
     }
   };
@@ -905,7 +1020,27 @@ export function MappingScreen() {
                     </div>
                   </div>
                   <div className="flex justify-end">
-                    <button onClick={handleAddItem} disabled={!newItem.value || newItem.value === '' || newItem.value === '0' || !newItem.category || newItem.category === '' || parseFloat(newItem.value.toString()) <= 0 || isNaN(parseFloat(newItem.value.toString()))} className={`flex items-center px-4 py-2 rounded-lg transition-colors ${!newItem.value || newItem.value === '' || newItem.value === '0' || !newItem.category || newItem.category === '' || parseFloat(newItem.value.toString()) <= 0 || isNaN(parseFloat(newItem.value.toString())) ? 'bg-gray-600 cursor-not-allowed opacity-50' : 'bg-green-600 hover:bg-green-700'}`}>
+                    <button onClick={handleAddItem} disabled={
+                      // Validation complète pour activation du bouton
+                      !newItem.value || 
+                      newItem.value === '' || 
+                      newItem.value === '0' || 
+                      !newItem.category || 
+                      newItem.category === '' || 
+                      isNaN(parseFloat(newItem.value.toString())) || 
+                      parseFloat(newItem.value.toString()) <= 0
+                    } className={`flex items-center px-4 py-2 rounded-lg transition-colors ${
+                      // Conditions pour déterminer l'apparence du bouton
+                      !newItem.value || 
+                      newItem.value === '' || 
+                      newItem.value === '0' || 
+                      !newItem.category || 
+                      newItem.category === '' || 
+                      isNaN(parseFloat(newItem.value.toString())) || 
+                      parseFloat(newItem.value.toString()) <= 0
+                        ? 'bg-gray-600 cursor-not-allowed opacity-50' 
+                        : 'bg-green-600 hover:bg-green-700 focus:ring-2 focus:ring-green-500 focus:outline-none'
+                    }`}>
                       <CheckIcon className="h-5 w-5 mr-2" />
                       Ajouter
                     </button>
