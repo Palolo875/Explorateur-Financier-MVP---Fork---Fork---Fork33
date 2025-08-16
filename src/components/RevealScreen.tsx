@@ -6,10 +6,13 @@ import { useFinance } from '../context/FinanceContext';
 import { useFinanceStore } from '../stores/financeStore';
 import { GlassCard } from './ui/GlassCard';
 import { RevealAnimation } from './ui/RevealAnimation';
-import { ArrowLeftIcon, ArrowRightIcon, BarChart3Icon, TrendingUpIcon, TrendingDownIcon, AlertCircleIcon, CheckCircleIcon, XCircleIcon, InfoIcon, DownloadIcon, ShareIcon, BookmarkIcon, CreditCardIcon, PiggyBankIcon, HeartIcon, BrainIcon, TargetIcon, RefreshCwIcon, ChevronDownIcon, ChevronUpIcon, ExternalLinkIcon, LayoutDashboardIcon, LineChartIcon } from 'lucide-react';
+import { ArrowLeftIcon, ArrowRightIcon, BarChart3Icon, TrendingUpIcon, TrendingDownIcon, AlertCircleIcon, CheckCircleIcon, XCircleIcon, InfoIcon, DownloadIcon, ShareIcon, BookmarkIcon, CreditCardIcon, PiggyBankIcon, HeartIcon, BrainIcon, TargetIcon, RefreshCwIcon, ChevronDownIcon, ChevronUpIcon, ExternalLinkIcon, LayoutDashboardIcon, LineChartIcon, GraduationCap } from 'lucide-react';
 import { toast, Toaster } from 'react-hot-toast';
 import { FinancialInsight } from '../types/finance';
 import CountUp from 'react-countup';
+import MicroInsightContainer from './ui/MicroInsightContainer';
+import { BiasDetectionService } from '../services/BiasDetectionService';
+import { PsychologicalInsight, BiasDetectionResult } from '../types/psychology';
 // Définition des types pour les sections d'analyse
 interface AnalysisSection {
   id: string;
@@ -56,8 +59,11 @@ export function RevealScreen() {
   const [recommendations, setRecommendations] = useState<string[]>([]);
   const [strengths, setStrengths] = useState<string[]>([]);
   const [weaknesses, setWeaknesses] = useState<string[]>([]);
+  const [psychologicalInsights, setPsychologicalInsights] = useState<PsychologicalInsight[]>([]);
+  const [detectedBiases, setDetectedBiases] = useState<BiasDetectionResult[]>([]);
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
     insights: true,
+    psychology: true,
     health: false,
     recommendations: false,
     emotional: false,
@@ -95,6 +101,11 @@ export function RevealScreen() {
     icon: <BrainIcon className="h-5 w-5 text-indigo-400" />,
     expanded: expandedSections['insights']
   }, {
+    id: 'psychology',
+    title: 'Analyse Psychologique',
+    icon: <BrainIcon className="h-5 w-5 text-purple-400" />,
+    expanded: expandedSections['psychology']
+  }, {
     id: 'health',
     title: 'Santé Financière',
     icon: <HeartIcon className="h-5 w-5 text-red-400" />,
@@ -107,7 +118,7 @@ export function RevealScreen() {
   }, {
     id: 'emotional',
     title: 'Analyse Émotionnelle',
-    icon: <BrainIcon className="h-5 w-5 text-purple-400" />,
+    icon: <BrainIcon className="h-5 w-5 text-pink-400" />,
     expanded: expandedSections['emotional']
   }, {
     id: 'next-steps',
@@ -126,6 +137,19 @@ export function RevealScreen() {
         // Obtenir les insights financiers
         const fetchedInsights = await generateInsights();
         setInsights(fetchedInsights || []);
+        
+        // Analyser les biais psychologiques
+        const biasService = BiasDetectionService.getInstance();
+        const biases = await biasService.detectBiases(safeFinancialData, emotionalContext);
+        setDetectedBiases(biases);
+        
+        const psychInsights = biasService.generatePsychologicalInsights(
+          biases,
+          safeFinancialData,
+          emotionalContext
+        );
+        setPsychologicalInsights(psychInsights);
+        
         // Obtenir le score de santé financière
         const health = await getFinancialHealth();
         setHealthScore(health?.score || 50);
@@ -369,6 +393,99 @@ export function RevealScreen() {
                                     obtenir des insights personnalisés
                                   </p>
                                 </div>}
+                            </div>}
+                          {/* Contenu de l'analyse psychologique */}
+                          {section.id === 'psychology' && <div className="space-y-4">
+                              {/* Micro-insights psychologiques */}
+                              <MicroInsightContainer 
+                                financialData={safeFinancialData}
+                                emotionalContext={emotionalContext}
+                                context="dashboard"
+                                maxInsights={3}
+                                className="mb-4"
+                              />
+                              
+                              {/* Biais cognitifs détectés */}
+                              {detectedBiases.length > 0 && (
+                                <div className="bg-gradient-to-r from-purple-900/30 to-pink-900/30 p-4 rounded-lg border border-purple-500/20">
+                                  <h3 className="font-medium mb-3 flex items-center">
+                                    <BrainIcon className="h-5 w-5 text-purple-400 mr-2" />
+                                    Biais cognitifs détectés
+                                  </h3>
+                                  <div className="space-y-3">
+                                    {detectedBiases.map((bias, index) => (
+                                      <div key={bias.biasId} className="bg-black/20 p-3 rounded-lg">
+                                        <div className="flex items-center justify-between mb-2">
+                                          <h4 className="font-medium text-sm">
+                                            {bias.biasId.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                                          </h4>
+                                          <span className="text-xs px-2 py-1 bg-purple-500/20 text-purple-300 rounded-full">
+                                            {Math.round(bias.confidence * 100)}% confiance
+                                          </span>
+                                        </div>
+                                        <p className="text-sm text-gray-300 mb-2">
+                                          Impact financier estimé: {bias.financialImpact.toFixed(0)}€
+                                        </p>
+                                        <div className="text-xs text-gray-400">
+                                          Preuves: {bias.evidence.join(', ')}
+                                        </div>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+                              
+                              {/* Insights psychologiques détaillés */}
+                              {psychologicalInsights.length > 0 && (
+                                <div className="space-y-3">
+                                  <h3 className="font-medium flex items-center">
+                                    <GraduationCap className="h-5 w-5 text-blue-400 mr-2" />
+                                    Insights psychologiques
+                                  </h3>
+                                  {psychologicalInsights.slice(0, 3).map((insight, index) => (
+                                    <div key={insight.id} className={`p-4 rounded-lg border ${
+                                      insight.urgency === 'high' 
+                                        ? 'bg-red-900/20 border-red-500/30' 
+                                        : insight.urgency === 'medium'
+                                        ? 'bg-yellow-900/20 border-yellow-500/30'
+                                        : 'bg-green-900/20 border-green-500/30'
+                                    }`}>
+                                      <div className="flex items-start justify-between mb-2">
+                                        <div className="flex items-center">
+                                          <span className={`w-2 h-2 rounded-full mr-2 ${
+                                            insight.urgency === 'high' ? 'bg-red-500' 
+                                            : insight.urgency === 'medium' ? 'bg-yellow-500' 
+                                            : 'bg-green-500'
+                                          }`}></span>
+                                          <h4 className="font-medium text-sm">
+                                            {insight.type === 'bias' ? 'Biais cognitif' : 'Fait psychologique'}
+                                          </h4>
+                                        </div>
+                                        <div className="inline-flex items-center gap-1 px-2 py-1 bg-emerald-100/10 text-emerald-300 rounded-full text-xs">
+                                          <CheckCircle className="w-3 h-3" />
+                                          <span>Science Vérifiée</span>
+                                        </div>
+                                      </div>
+                                      <p className="text-sm text-gray-300 mb-2">{insight.context}</p>
+                                      {insight.financialImpact.amount && (
+                                        <p className="text-xs text-gray-400">
+                                          {insight.financialImpact.description}
+                                        </p>
+                                      )}
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+                              
+                              {detectedBiases.length === 0 && psychologicalInsights.length === 0 && (
+                                <div className="text-center py-6 text-gray-400">
+                                  <BrainIcon className="h-12 w-12 mx-auto mb-3 opacity-50" />
+                                  <p>Aucun biais cognitif significatif détecté</p>
+                                  <p className="text-sm mt-1">
+                                    Continuez à utiliser Rivela pour une analyse plus approfondie
+                                  </p>
+                                </div>
+                              )}
                             </div>}
                           {/* Contenu de la santé financière */}
                           {section.id === 'health' && <div className="space-y-4">
