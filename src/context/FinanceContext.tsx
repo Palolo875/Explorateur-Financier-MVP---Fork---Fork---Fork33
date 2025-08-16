@@ -66,17 +66,52 @@ export function FinanceProvider({
   // Enhanced setFinancialData with error handling
   const setFinancialDataSafe = (data: FinancialData | ((prev: FinancialData) => FinancialData)) => {
     try {
+      console.log('setFinancialDataSafe called with:', typeof data);
+      
       if (typeof data === 'function') {
+        console.log('Data is function, calling with current data:', safeFinancialData);
         const newData = data(safeFinancialData);
-        console.log('Updating financial data:', newData);
-        storeSetFinancialData(newData);
+        console.log('Function returned:', newData);
+        
+        // Validate the returned data
+        if (!newData || typeof newData !== 'object') {
+          throw new Error('Invalid data returned from function');
+        }
+        
+        // Ensure all required properties exist
+        const validatedData: FinancialData = {
+          incomes: Array.isArray(newData.incomes) ? newData.incomes : [],
+          expenses: Array.isArray(newData.expenses) ? newData.expenses : [],
+          savings: Array.isArray(newData.savings) ? newData.savings : [],
+          debts: Array.isArray(newData.debts) ? newData.debts : [],
+          investments: Array.isArray(newData.investments) ? newData.investments : []
+        };
+        
+        console.log('Validated data:', validatedData);
+        storeSetFinancialData(validatedData);
       } else {
-        console.log('Setting financial data:', data);
-        storeSetFinancialData(data);
+        console.log('Data is object, setting directly:', data);
+        
+        if (!data || typeof data !== 'object') {
+          throw new Error('Invalid data object provided');
+        }
+        
+        // Validate the data object
+        const validatedData: FinancialData = {
+          incomes: Array.isArray(data.incomes) ? data.incomes : [],
+          expenses: Array.isArray(data.expenses) ? data.expenses : [],
+          savings: Array.isArray(data.savings) ? data.savings : [],
+          debts: Array.isArray(data.debts) ? data.debts : [],
+          investments: Array.isArray(data.investments) ? data.investments : []
+        };
+        
+        console.log('Validated data:', validatedData);
+        storeSetFinancialData(validatedData);
       }
     } catch (error) {
-      console.error('Error updating financial data:', error);
-      throw new Error('Failed to update financial data: ' + (error instanceof Error ? error.message : 'Unknown error'));
+      console.error('Error in setFinancialDataSafe:', error);
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      throw new Error('Failed to update financial data: ' + errorMessage);
     }
   };
   // Function to calculate total income
@@ -296,6 +331,10 @@ export function FinanceProvider({
   const getPredictions = async () => [];
   const getFinancialScore = () => 75;
   const refreshData = async () => {};
+  // Log pour déboguer
+  console.log('FinanceProvider render - storeSetFinancialData type:', typeof storeSetFinancialData);
+  console.log('FinanceProvider render - setFinancialDataSafe type:', typeof setFinancialDataSafe);
+
   return <FinanceContext.Provider value={{
     userQuestion,
     setUserQuestion,

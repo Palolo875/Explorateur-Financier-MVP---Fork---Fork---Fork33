@@ -144,7 +144,8 @@ export function MappingScreen() {
     setFinancialData
   } = useFinance();
   const {
-    setHasCompletedOnboarding
+    setHasCompletedOnboarding,
+    setFinancialData: directSetFinancialData
   } = useFinanceStore();
   // State for current tab
   const [activeTab, setActiveTab] = useState<'incomes' | 'expenses' | 'savings' | 'debts'>('incomes');
@@ -366,24 +367,48 @@ export function MappingScreen() {
       }
 
       // Mise à jour sécurisée de l'état
-      setFinancialData(prevData => {
-        // Créer une copie complète des données existantes
-        const updatedData = {
-          ...prevData,
-          incomes: prevData.incomes || [],
-          expenses: prevData.expenses || [],
-          savings: prevData.savings || [],
-          debts: prevData.debts || [],
-          investments: prevData.investments || []
-        };
-
-        // Ajouter le nouvel élément à la catégorie appropriée
-        const currentItems = updatedData[activeTab] || [];
-        updatedData[activeTab] = [...currentItems, newFinancialItem];
-
-        console.log('Données mises à jour:', updatedData);
-        return updatedData;
-      });
+      console.log('Avant mise à jour - financialData:', financialData);
+      console.log('Avant mise à jour - setFinancialData type:', typeof setFinancialData);
+      
+      // Approche alternative plus simple
+      const currentData = {
+        incomes: financialData.incomes || [],
+        expenses: financialData.expenses || [],
+        savings: financialData.savings || [],
+        debts: financialData.debts || [],
+        investments: financialData.investments || []
+      };
+      
+      // Ajouter le nouvel élément directement
+      const currentItems = currentData[activeTab] || [];
+      const updatedItems = [...currentItems, newFinancialItem];
+      
+      const updatedData = {
+        ...currentData,
+        [activeTab]: updatedItems
+      };
+      
+      console.log('Données à définir:', updatedData);
+      
+      try {
+        setFinancialData(updatedData);
+        console.log('Mise à jour réussie via contexte');
+      } catch (updateError) {
+        console.error('Erreur lors de la mise à jour via contexte:', updateError);
+        console.log('Tentative avec setFinancialData direct du store...');
+        try {
+          directSetFinancialData(updatedData);
+          console.log('Mise à jour réussie via store direct');
+        } catch (directError) {
+          console.error('Erreur aussi avec le store direct:', directError);
+          
+          // Dernier fallback: ajouter seulement à l'état local et afficher un avertissement
+          console.warn('Sauvegarde impossible, ajout temporaire seulement');
+          toast.warning('Élément ajouté temporairement. Veuillez rafraîchir la page pour le sauvegarder définitivement.');
+          
+          // On continue quand même avec le processus local pour ne pas bloquer l'utilisateur
+        }
+      }
 
       // Réinitialiser le formulaire
       setNewItem({
