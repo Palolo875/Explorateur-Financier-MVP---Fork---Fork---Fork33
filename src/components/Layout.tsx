@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { LayoutDashboardIcon, LineChartIcon, BarChart3Icon, UserIcon, SettingsIcon, LogOutIcon, MenuIcon, XIcon, BookOpenIcon, GraduationCapIcon, MessageSquareIcon } from 'lucide-react';
+import { LayoutDashboardIcon, LineChartIcon, BarChart3Icon, UserIcon, SettingsIcon, LogOutIcon, MenuIcon, XIcon, BookOpenIcon, GraduationCapIcon, MessageSquareIcon, DatabaseIcon } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 import { motion } from 'framer-motion';
 interface LayoutProps {
@@ -22,6 +22,10 @@ export function Layout({
     icon: <LayoutDashboardIcon className="h-5 w-5" />,
     label: 'Tableau de bord',
     path: '/dashboard'
+  }, {
+    icon: <DatabaseIcon className="h-5 w-5" />,
+    label: 'Données Réelles',
+    path: '/real-data'
   }, {
     icon: <LineChartIcon className="h-5 w-5" />,
     label: 'Simulations',

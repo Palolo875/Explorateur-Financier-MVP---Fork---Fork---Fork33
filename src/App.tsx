@@ -20,6 +20,7 @@ import { Feedback } from './components/Feedback';
 import { FinancialSimulator } from './components/FinancialSimulator';
 import { EmotionalJournal } from './components/EmotionalJournal';
 import { HiddenFeesDetector } from './components/HiddenFeesDetector';
+import { RealDataDashboard } from './components/RealDataDashboard';
 // Désactiver les restrictions premium globalement
 if (window) {
   window.PREMIUM_ENABLED = true;
@@ -50,6 +51,7 @@ export function App() {
                 <Route path="/financial-simulator" element={<FinancialSimulator />} />
                 <Route path="/emotional-journal" element={<EmotionalJournal />} />
                 <Route path="/hidden-fees" element={<HiddenFeesDetector />} />
+                <Route path="/real-data" element={<RealDataDashboard userId="demo-user" />} />
                 <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>
             </AnimatePresence>
