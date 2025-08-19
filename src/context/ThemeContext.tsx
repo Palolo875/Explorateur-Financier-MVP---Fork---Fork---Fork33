@@ -1,7 +1,7 @@
 import React, { useEffect, useState, createContext, useContext } from 'react';
 // Define theme types
-type ThemeType = 'light' | 'dark' | 'cosmic' | 'system';
-type ColorScheme = 'indigo' | 'blue' | 'green' | 'purple' | 'amber';
+type ThemeType = 'light' | 'dark' | 'cosmic' | 'marble' | 'system';
+type ColorScheme = 'indigo' | 'blue' | 'green' | 'purple' | 'amber' | 'marble';
 interface ThemeColors {
   primary: string;
   secondary: string;
@@ -88,6 +88,15 @@ const getThemeColors = (theme: ThemeType, colorScheme: ColorScheme): ThemeColors
       primaryLight: 'bg-amber-300',
       primaryDark: 'bg-amber-700',
       primaryPastel: 'bg-amber-200'
+    },
+    marble: {
+      primaryGradient: 'from-marble-500 to-aqua-400',
+      secondaryGradient: 'from-gold-500 to-gold-600',
+      accentColor: 'bg-marble-500',
+      primarySolid: 'bg-marble-500',
+      primaryLight: 'bg-marble-300',
+      primaryDark: 'bg-marble-700',
+      primaryPastel: 'bg-marble-200'
     }
   };
   // Chart colors for each scheme
@@ -96,7 +105,8 @@ const getThemeColors = (theme: ThemeType, colorScheme: ColorScheme): ThemeColors
     blue: ['#3b82f6', '#0ea5e9', '#6366f1', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'],
     green: ['#10b981', '#059669', '#3b82f6', '#6366f1', '#f59e0b', '#ef4444', '#8b5cf6'],
     purple: ['#8b5cf6', '#a855f7', '#6366f1', '#3b82f6', '#f59e0b', '#ef4444', '#10b981'],
-    amber: ['#f59e0b', '#f97316', '#3b82f6', '#6366f1', '#10b981', '#ef4444', '#8b5cf6']
+    amber: ['#f59e0b', '#f97316', '#3b82f6', '#6366f1', '#10b981', '#ef4444', '#8b5cf6'],
+    marble: ['#7dd3d1', '#2dd4bf', '#f59e0b', '#d97706', '#5fb8b6', '#4a9b9a', '#b8e9e6']
   };
   const scheme = colorSchemes[colorScheme];
   const chartColors = chartColorSets[colorScheme];
@@ -128,6 +138,19 @@ const getThemeColors = (theme: ThemeType, colorScheme: ColorScheme): ThemeColors
         glassOpacity: 'bg-white/10',
         buttonStyle: 'bg-gradient-to-r shadow-glow'
       };
+    case 'marble':
+      return {
+        primary: scheme.primaryGradient,
+        secondary: scheme.secondaryGradient,
+        accent: scheme.accentColor,
+        background: 'bg-gradient-to-br from-marble-50 to-cream-200',
+        cardBackground: 'bg-cream-100/80',
+        text: 'text-marble-900',
+        textSecondary: 'text-marble-600',
+        chartColors,
+        glassOpacity: 'bg-marble-500/15',
+        buttonStyle: 'bg-gradient-to-r shadow-lg'
+      };
     case 'dark':
     default:
       return {
@@ -149,15 +172,15 @@ export const ThemeProvider: React.FC<{
 }> = ({
   children
 }) => {
-  // Get initial theme from local storage or default to 'dark'
+  // Get initial theme from local storage or default to 'marble'
   const [theme, setThemeState] = useState<ThemeType>(() => {
     const savedTheme = localStorage.getItem('theme') as ThemeType;
-    return savedTheme || 'dark';
+    return savedTheme || 'marble';
   });
-  // Get initial color scheme from local storage or default to 'indigo'
+  // Get initial color scheme from local storage or default to 'marble'
   const [colorScheme, setColorSchemeState] = useState<ColorScheme>(() => {
     const savedColorScheme = localStorage.getItem('colorScheme') as ColorScheme;
-    return savedColorScheme || 'indigo';
+    return savedColorScheme || 'marble';
   });
   // Get current theme colors
   const themeColors = getThemeColors(theme, colorScheme);
@@ -183,6 +206,18 @@ export const ThemeProvider: React.FC<{
       root.style.setProperty('--glass-shadow', 'rgba(0, 0, 0, 0.3)');
       root.style.setProperty('--card-shadow', '0 8px 32px 0 rgba(0, 0, 0, 0.3)');
       root.style.setProperty('--backdrop-blur', '12px');
+    } else if (newTheme === 'marble') {
+      root.style.setProperty('--background-start', '#f0fdfa');
+      root.style.setProperty('--background-end', '#faf8f6');
+      root.style.setProperty('--accent-gradient-start', '#7dd3d1');
+      root.style.setProperty('--accent-gradient-end', '#2dd4bf');
+      root.style.setProperty('--secondary-gradient-start', '#f59e0b');
+      root.style.setProperty('--secondary-gradient-end', '#d97706');
+      root.style.setProperty('--glass-bg', 'rgba(125, 211, 209, 0.15)');
+      root.style.setProperty('--glass-border', 'rgba(125, 211, 209, 0.3)');
+      root.style.setProperty('--glass-shadow', 'rgba(125, 211, 209, 0.2)');
+      root.style.setProperty('--card-shadow', '0 8px 32px 0 rgba(125, 211, 209, 0.15)');
+      root.style.setProperty('--backdrop-blur', '16px');
     } else {
       // Dark theme - Glass morphism style
       root.style.setProperty('--background-start', '#1a1a2e');
@@ -207,10 +242,12 @@ export const ThemeProvider: React.FC<{
       root.classList.toggle('dark', systemTheme === 'dark');
       root.classList.toggle('light', systemTheme === 'light');
       root.classList.toggle('cosmic', false);
+      root.classList.toggle('marble', false);
     } else {
       root.classList.toggle('dark', theme === 'dark');
       root.classList.toggle('light', theme === 'light');
       root.classList.toggle('cosmic', theme === 'cosmic');
+      root.classList.toggle('marble', theme === 'marble');
     }
     // Update CSS variables for the theme
     setTheme(theme);
