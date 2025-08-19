@@ -10,6 +10,8 @@ export function Settings() {
   const {
     theme,
     setTheme,
+    colorScheme,
+    setColorScheme,
     themeColors
   } = useTheme();
   // State for settings
@@ -23,7 +25,7 @@ export function Settings() {
   const [privacyMode, setPrivacyMode] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
   // Handle theme change
-  const handleThemeChange = (themeType: 'light' | 'dark' | 'cosmic') => {
+  const handleThemeChange = (themeType: 'light' | 'dark' | 'cosmic' | 'marble') => {
     setTheme(themeType);
     setDarkMode(themeType === 'dark' || themeType === 'cosmic');
   };
@@ -256,7 +258,7 @@ export function Settings() {
             <div className="space-y-4">
               <div>
                 <label className="block text-sm mb-2">Thème</label>
-                <div className="grid grid-cols-3 gap-2">
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
                   <button onClick={() => handleThemeChange('light')} className={`p-3 rounded-lg flex flex-col items-center ${theme === 'light' ? 'bg-gradient-to-r from-indigo-500 to-purple-600 text-white' : 'bg-black/20 hover:bg-black/30'}`}>
                     <SunIcon className="h-6 w-6 mb-1" />
                     <span className="text-xs">Clair</span>
@@ -272,26 +274,37 @@ export function Settings() {
                     </svg>
                     <span className="text-xs">Cosmique</span>
                   </button>
+                  <button onClick={() => handleThemeChange('marble')} className={`p-3 rounded-lg flex flex-col items-center ${theme === 'marble' ? 'bg-gradient-to-r from-marble-500 to-aqua-400 text-white' : 'bg-black/20 hover:bg-black/30'}`}>
+                    <svg className="h-6 w-6 mb-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z" />
+                      <path d="M8 12h8" />
+                      <path d="M12 8v8" />
+                      <circle cx="12" cy="12" r="3" />
+                    </svg>
+                    <span className="text-xs">Marbre</span>
+                  </button>
                 </div>
               </div>
               <div>
                 <label className="block text-sm mb-2">
                   Palette de couleurs
                 </label>
-                <div className="grid grid-cols-3 gap-3">
-                  <button onClick={() => toast.success('Thème appliqué')} className="p-3 rounded-lg flex flex-col items-center bg-gradient-to-r from-indigo-500 to-purple-600 text-white">
-                    <div className="w-6 h-6 rounded-full bg-white mb-1"></div>
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                  <button onClick={() => { setColorScheme('indigo'); toast.success('Palette Indigo appliquée'); }} className={`p-3 rounded-lg flex flex-col items-center ${colorScheme === 'indigo' ? 'bg-gradient-to-r from-indigo-500 to-purple-600 text-white' : 'bg-black/20 hover:bg-black/30'}`}>
+                    <div className="w-6 h-6 rounded-full bg-gradient-to-r from-indigo-500 to-purple-600 mb-1"></div>
                     <span className="text-xs">Indigo</span>
                   </button>
-                  <button onClick={() => toast.success('Fonctionnalité Premium')} className="p-3 rounded-lg flex flex-col items-center bg-black/20 hover:bg-black/30 relative">
+                  <button onClick={() => { setColorScheme('blue'); toast.success('Palette Océan appliquée'); }} className={`p-3 rounded-lg flex flex-col items-center ${colorScheme === 'blue' ? 'bg-gradient-to-r from-blue-500 to-cyan-600 text-white' : 'bg-black/20 hover:bg-black/30'}`}>
                     <div className="w-6 h-6 rounded-full bg-gradient-to-r from-blue-500 to-cyan-500 mb-1"></div>
                     <span className="text-xs">Océan</span>
-                    <LockIcon className="h-3 w-3 absolute top-1 right-1 text-yellow-400" />
                   </button>
-                  <button onClick={() => toast.success('Fonctionnalité Premium')} className="p-3 rounded-lg flex flex-col items-center bg-black/20 hover:bg-black/30 relative">
+                  <button onClick={() => { setColorScheme('green'); toast.success('Palette Émeraude appliquée'); }} className={`p-3 rounded-lg flex flex-col items-center ${colorScheme === 'green' ? 'bg-gradient-to-r from-emerald-500 to-green-600 text-white' : 'bg-black/20 hover:bg-black/30'}`}>
                     <div className="w-6 h-6 rounded-full bg-gradient-to-r from-green-500 to-emerald-500 mb-1"></div>
                     <span className="text-xs">Émeraude</span>
-                    <LockIcon className="h-3 w-3 absolute top-1 right-1 text-yellow-400" />
+                  </button>
+                  <button onClick={() => { setColorScheme('marble'); toast.success('Palette Marbre appliquée'); }} className={`p-3 rounded-lg flex flex-col items-center ${colorScheme === 'marble' ? 'bg-gradient-to-r from-marble-500 to-aqua-400 text-white' : 'bg-black/20 hover:bg-black/30'}`}>
+                    <div className="w-6 h-6 rounded-full bg-gradient-to-r from-marble-500 to-gold-500 mb-1"></div>
+                    <span className="text-xs">Marbre</span>
                   </button>
                 </div>
               </div>

@@ -20,11 +20,11 @@
   border-radius: 10px;
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(99, 102, 241, 0.5);
+  background: rgba(125, 211, 209, 0.5);
   border-radius: 10px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(99, 102, 241, 0.7);
+  background: rgba(125, 211, 209, 0.7);
 }
 /* Line clamp utilities */
 .line-clamp-1 {
@@ -52,8 +52,8 @@
 }
 /* Custom animations */
 @keyframes pulse-glow {
-  0%, 100% { box-shadow: 0 0 5px rgba(99, 102, 241, 0.5); }
-  50% { box-shadow: 0 0 20px rgba(99, 102, 241, 0.8); }
+  0%, 100% { box-shadow: 0 0 5px rgba(125, 211, 209, 0.5); }
+  50% { box-shadow: 0 0 20px rgba(125, 211, 209, 0.8); }
 }
 .animate-pulse-glow {
   animation: pulse-glow 2s infinite;

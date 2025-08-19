@@ -51,6 +51,22 @@
   --backdrop-blur: 12px;
   color: #ffffff;
 }
+
+.marble {
+  /* Thème inspiré des statues de marbre avec vert menthe, blanc cassé et doré */
+  --background-start: #f0fdfa;
+  --background-end: #faf8f6;
+  --accent-gradient-start: #7dd3d1;
+  --accent-gradient-end: #2dd4bf;
+  --secondary-gradient-start: #f59e0b;
+  --secondary-gradient-end: #d97706;
+  --glass-bg: rgba(125, 211, 209, 0.15);
+  --glass-border: rgba(125, 211, 209, 0.3);
+  --glass-shadow: rgba(125, 211, 209, 0.2);
+  --card-shadow: 0 8px 32px 0 rgba(125, 211, 209, 0.15);
+  --backdrop-blur: 16px;
+  color: #2a5f5f;
+}
 body {
   font-family: var(--font-family);
   background: linear-gradient(135deg, var(--background-start), var(--background-end));
@@ -89,6 +105,52 @@ body {
   height: 100%;
   background: linear-gradient(135deg, var(--background-start), var(--background-end));
   z-index: -1;
+}
+
+/* Marble theme background with elegant marble-like effects */
+.marble body::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: 
+    radial-gradient(circle at 25% 25%, rgba(125, 211, 209, 0.4) 0%, transparent 40%),
+    radial-gradient(circle at 75% 75%, rgba(245, 158, 11, 0.2) 0%, transparent 40%),
+    radial-gradient(circle at 50% 10%, rgba(250, 248, 246, 0.8) 0%, transparent 60%),
+    radial-gradient(circle at 10% 80%, rgba(125, 211, 209, 0.3) 0%, transparent 50%),
+    linear-gradient(135deg, var(--background-start), var(--background-end));
+  z-index: -1;
+  animation: marble-flow 25s ease-in-out infinite;
+}
+
+/* Marble theme floating elements animation */
+@keyframes marble-flow {
+  0%, 100% {
+    background: 
+      radial-gradient(circle at 25% 25%, rgba(125, 211, 209, 0.4) 0%, transparent 40%),
+      radial-gradient(circle at 75% 75%, rgba(245, 158, 11, 0.2) 0%, transparent 40%),
+      radial-gradient(circle at 50% 10%, rgba(250, 248, 246, 0.8) 0%, transparent 60%),
+      radial-gradient(circle at 10% 80%, rgba(125, 211, 209, 0.3) 0%, transparent 50%),
+      linear-gradient(135deg, var(--background-start), var(--background-end));
+  }
+  33% {
+    background: 
+      radial-gradient(circle at 35% 35%, rgba(125, 211, 209, 0.5) 0%, transparent 45%),
+      radial-gradient(circle at 65% 85%, rgba(245, 158, 11, 0.3) 0%, transparent 45%),
+      radial-gradient(circle at 80% 20%, rgba(250, 248, 246, 0.9) 0%, transparent 65%),
+      radial-gradient(circle at 20% 70%, rgba(125, 211, 209, 0.4) 0%, transparent 55%),
+      linear-gradient(135deg, var(--background-start), var(--background-end));
+  }
+  66% {
+    background: 
+      radial-gradient(circle at 15% 45%, rgba(125, 211, 209, 0.3) 0%, transparent 35%),
+      radial-gradient(circle at 85% 65%, rgba(245, 158, 11, 0.25) 0%, transparent 35%),
+      radial-gradient(circle at 40% 90%, rgba(250, 248, 246, 0.7) 0%, transparent 55%),
+      radial-gradient(circle at 90% 90%, rgba(125, 211, 209, 0.35) 0%, transparent 45%),
+      linear-gradient(135deg, var(--background-start), var(--background-end));
+  }
 }
 
 @keyframes float-spheres {
